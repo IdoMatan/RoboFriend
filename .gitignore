@@ -1,0 +1,5 @@
+/training.log
+**/__pycache__
+*.ipynb
+/Videos
+/venv
