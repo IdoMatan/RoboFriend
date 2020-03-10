@@ -1,0 +1,1 @@
+[2020-03-07 17:56:55,491] DEBUG preRegister called. Server=com.sun.jmx.mbeanserver.JmxMBeanServer@1b68ddbd, name=log4j:logger=state.change.logger (state.change.logger)

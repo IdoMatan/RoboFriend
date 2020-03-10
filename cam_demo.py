@@ -50,7 +50,7 @@ ax = fig.add_subplot(1, 1, 1)
 xs = []
 ys = []
 
-action = utils.PlayMovie()
+action = utils.PlayMovie(pages=1)
 action.play()
 # time.sleep(10)
 #

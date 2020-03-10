@@ -1,0 +1,89 @@
+# IMPORTANT, in grafana, use postgres:5432 as host name !!!!!!
+# database: postgres, user: postgres, password: <empty>,
+# docker-compose up --detach
+# docker-compose down --volume
+
+version: "3"
+
+#networks:
+#  kafka-net:
+#    driver: bridge
+
+services:
+  postgres:
+    image: "postgres:11"
+    restart: always
+    volumes:
+      - ./init_db.sh:/docker-entrypoint-initdb.d/1_init_db.sh
+      - ./migrations/tables.sql:/docker-entrypoint-initdb.d/tables.sql
+    container_name: "postgres"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_HOST_AUTH_METHOD=trust
+    ports:
+      - "5432:5432"
+
+  grafana:
+    image: "grafana/grafana:latest"
+    container_name: "grafana"
+    restart: always
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_USERS_DEFAULT_THEME=dark
+      - GF_AUTH_DISABLE_LOGIN_FORM=false
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_NAME=Ido
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Editor
+      - GF_AUTH_BASIC_ENABLED=false
+      - GF_AUTH_PROXY_ENABLED=false
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - ./grafana_provisioning/:/etc/grafana/provisioning/
+      - ./grafana_dashboards/:/var/lib/grafana/dashboards/
+    ports:
+      - "3000:3000"
+    links:
+      - postgres
+    depends_on:
+      - postgres
+
+#  zookeeper-server:
+#    image: wurstmeister/zookeeper
+#    restart: unless-stopped
+#    networks:
+#      - kafka-net
+#    ports:
+#      - '2181:2181'
+#    environment:
+#      - ALLOW_ANONYMOUS_LOGIN=yes
+#
+#
+#  kafka-server:
+#    image: wurstmeister/kafka:latest
+#    restart: unless-stopped
+#    networks:
+#      - kafka-net
+#    ports:
+#      - '9092:9092'
+##    expose:
+##      - "9093"
+#    environment:
+#      - KAFKA_ZOOKEEPER_CONNECT=zookeeper-server:2181
+##      - KAFKA_ADVERTISED_LISTENERS= INSIDE://kafka:9093,OUTSIDE://13.58.106.247:9092
+#      - KAFKA_ADVERTISED_HOST_NAME= localhost
+#      - ALLOW_PLAINTEXT_LISTENER=yes
+##      - KAFKA_LISTENERS= INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+#      - ES_JAVA_OPTS= -Xms64m -Xmx64m
+#      - KAFKA_HEAP_OPTS= -Xmx64m -Xms64m
+##      - KAFKA_CREATE_TOPICS= 'camera:1:1,microphone:1:1,video:1:1,servos:1:1'
+#    volumes:
+#      - /var/run/docker.sock
+#    depends_on:
+#      - zookeeper-server
+
+
+#  networks:
+#    app-tier:
+#      driver: bridge
