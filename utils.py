@@ -6,6 +6,10 @@ import matplotlib.pyplot as plt
 import os
 # import subprocess
 import vlc
+import time
+import sys
+import PyQt5
+
 # import pyqtgraph as pg
 
 
@@ -21,6 +25,7 @@ def draw_gaze(image_in, eye_pos, pitchyaw, length=200, thickness=1, color=(0, 0,
                    tuple(np.round([eye_pos[0] + dx, eye_pos[1] + dy]).astype(int)), color,
                    thickness, cv2.LINE_AA, tipLength=0.5)
     return image_out
+
 
 def convert_to_unit_vector(angles):
     x = -torch.cos(angles[:, 0]) * torch.sin(angles[:, 1])
@@ -112,8 +117,9 @@ def attention(gaze):
 
 
 class PlayMovie:
-    def __init__(self, path='Videos/video_part1.mp4'):
+    def __init__(self, pages, path='Videos/video_part1.mp4'):
         self.player = vlc.MediaPlayer(path)
+        self.pages_map = pages
 
     def play(self, position=0.0):
         self.player.set_fullscreen(b_fullscreen=True)
@@ -129,4 +135,37 @@ class PlayMovie:
     def action(self, path):
         self.player.stop()
         self.player = vlc.MediaPlayer(path)
+
+    def play_page(self, segment):
+        if segment < len(self.pages_map):
+
+            from PyQt5 import QtCore
+            from PyQt5 import QtGui
+            import sys
+
+            vlcApp = QtGui.QGuiApplication(sys.argv)
+            vlcWidget = vlcApp.QFrame()
+            vlcWidget.resize(700, 700)
+            vlcWidget.show()
+            self.player.set_nsobject(vlcWidget.winId())
+
+
+            duration_in_sec = self.pages_map[segment + 1] - self.pages_map[segment]
+            self.play(position=self.pages_map[segment])
+            print('Playing page:', segment, '/', len(self.pages_map))
+            stopwatch(duration_in_sec)
+            self.stop()
+        else:
+            self.play(position=self.pages_map[segment])
+            print('Playing page:', segment, '/', len(self.pages_map))
+
+
+def stopwatch(seconds):
+    start = time.time()
+    time.clock()
+    elapsed = 0
+    while elapsed < seconds:
+        elapsed = time.time() - start
+        time.sleep(0.2)
+    return 1
 

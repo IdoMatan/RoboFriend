@@ -3,3 +3,6 @@
 *.ipynb
 /Videos
 /venv
+/bin
+/config
+/libs
