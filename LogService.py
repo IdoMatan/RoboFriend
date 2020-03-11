@@ -30,6 +30,7 @@ producer = KafkaProducer(bootstrap_servers='localhost:9092',
 consumer.subscribe(['camera', 'microphone', 'video'])
 page = 1
 action_time = time.time()
+time.sleep(1)
 producer.send('action', value={'page': str(page), 'status': 'play'}, key='actionService')
 
 for message in consumer:

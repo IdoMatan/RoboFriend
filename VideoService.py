@@ -23,7 +23,7 @@ import utils
 
 
 def from_page_to_position(page=0):
-    pages = [0, 0, 82000, 162000, 233000, 314000, 382000, 470000]
+    pages = [0, 10, 82100, 162000, 233000, 314000, 382000, 470000]
     return pages[page]
 
 
@@ -51,7 +51,6 @@ for message in consumer:
             position = from_page_to_position(page=page)
             stop_position = from_page_to_position(page=page+1)
 
-        if message.topic == 'action':
             status = str(message.value['status'])
             if status == 'pause':
                 action.pause()
