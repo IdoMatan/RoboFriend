@@ -33,6 +33,7 @@ action_time = time.time()
 time.sleep(1)
 producer.send('action', value={'page': str(page), 'status': 'play'}, key='actionService')
 
+
 for message in consumer:
         if message.topic == 'microphone':
             # print("Logging to database:", message.value['volume'], ', from:', message.key)
@@ -44,7 +45,33 @@ for message in consumer:
             # print("Logging to database:", message.value['page'], ', from:', message.key)
             database.log(page_num=int(message.value['page']), story=message.value['story'])
 
+
         if time.time() - action_time > 20:
             page = page + 1
             producer.send('action', value={'page': str(page), 'status': 'play'}, key='actionService')
             action_time = time.time()
+
+
+# def process_topic_one(msg):
+#     ...
+#
+# def process_topic_two(msg):
+#     ...
+#
+# c.subscribe(['topic-one', 'topic-two])
+#
+# while True:
+#     msg = c.poll(1.0)
+#
+#     if msg is None:
+#         continue
+#     if msg.error():
+#         print("Consumer error: {}".format(msg.error()))
+#         continue
+#
+#     if msg.topic() == "topic-one":
+#         process_topic_one(msg)
+#     elif msg.topic() == "topic-two":
+#         process_topic_two(msg)
+#
+# c.close()
