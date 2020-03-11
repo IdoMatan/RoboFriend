@@ -8,17 +8,16 @@ import utils
 
 ########################################################################################################
 
-producer = KafkaProducer(bootstrap_servers='localhost:9092',
-                         key_serializer=str.encode,
-                         value_serializer=lambda v: json.dumps(v).encode('utf-8'))
-
-
-for i in range(10):
-
-    story = 'Apartment for Rent'
-    page = i + 1
-    producer.send('video', value={'page': str(page), 'story': story}, key='VideoService')
-    time.sleep(10)
+# producer = KafkaProducer(bootstrap_servers='localhost:9092',
+#                          key_serializer=str.encode,
+#                          value_serializer=lambda v: json.dumps(v).encode('utf-8'))
+#
+#
+# for i in range(10):
+#
+#     page = i + 1
+#     producer.send('video', value={'page': str(page), 'story': story}, key='VideoService')
+#     time.sleep(10)
 
 ########################################################################################################
 
@@ -38,6 +37,7 @@ consumer = KafkaConsumer(bootstrap_servers=['localhost:9092'],
 
 
 print('Running Video Service')
+story = 'Apartment for Rent'
 
 consumer.subscribe(['action'])
 action = utils.PlayMovie()
@@ -48,10 +48,8 @@ page = None
 for message in consumer:
         if message.topic == 'action':
             page = int(message.value['page'])
-
             position = from_page_to_position(page=page)
             stop_position = from_page_to_position(page=page+1)
-            action.play(position=position)
 
         if message.topic == 'action':
             status = str(message.value['status'])

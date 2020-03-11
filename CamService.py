@@ -52,6 +52,8 @@ state_dict = torch.load(args.weights, map_location=device)
 model.load_state_dict(state_dict)
 print('Model loaded using {} as device'.format(device))
 
+print('Running Camera Service')
+
 model.eval()
 
 fps = 0
