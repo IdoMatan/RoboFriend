@@ -117,14 +117,17 @@ def attention(gaze):
 
 
 class PlayMovie:
-    def __init__(self, pages, path='Videos/video_part1.mp4'):
+    def __init__(self, pages=0, path='Videos/video_part1.mp4'):
         self.player = vlc.MediaPlayer(path)
-        self.pages_map = pages
+        # self.pages_map = pages
 
     def play(self, position=0.0):
         self.player.set_fullscreen(b_fullscreen=True)
+
         self.player.play()
-        self.player.set_position(position)
+
+        self.player.set_time(position)
+
 
     def pause(self):
         self. player.pause()
@@ -149,7 +152,6 @@ class PlayMovie:
             vlcWidget.show()
             self.player.set_nsobject(vlcWidget.winId())
 
-
             duration_in_sec = self.pages_map[segment + 1] - self.pages_map[segment]
             self.play(position=self.pages_map[segment])
             print('Playing page:', segment, '/', len(self.pages_map))
@@ -159,6 +161,8 @@ class PlayMovie:
             self.play(position=self.pages_map[segment])
             print('Playing page:', segment, '/', len(self.pages_map))
 
+    def get_time(self):
+        return self.player.get_time()
 
 def stopwatch(seconds):
     start = time.time()
