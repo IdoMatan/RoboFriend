@@ -17,7 +17,6 @@ cam_process = subprocess.Popen('python CamService.py', shell=True)
 print('----- Starting VideoService -----')
 video_process = subprocess.Popen('python VideoService.py', shell=True)
 
-
 print('Waiting for messages....')
 
 consumer = KafkaConsumer(bootstrap_servers=['localhost:9092'],
@@ -28,13 +27,13 @@ consumer.subscribe(['camera', 'microphone', 'video'])
 
 for message in consumer:
         if message.topic == 'microphone':
-            print("Logging to database:", message.value['volume'], ', from:', message.key)
+            # print("Logging to database:", message.value['volume'], ', from:', message.key)
             database.log(mic=float(message.value['volume']))
         elif message.topic == 'camera':
-            print("Logging to database:", message.value['attention'], ', from:', message.key)
+            # print("Logging to database:", message.value['attention'], ', from:', message.key)
             database.log(attention=float(message.value['attention']), n_kids=float(message.value['kids']))
         elif message.topic == 'video':
-            print("Logging to database:", message.value['page'], ', from:', message.key)
+            # print("Logging to database:", message.value['page'], ', from:', message.key)
             database.log(page_num=int(message.value['page']), story=message.value['story'])
 
 

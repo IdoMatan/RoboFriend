@@ -7,3 +7,7 @@ matplotlib
 torchvision
 python-dateutil
 opencv-contrib-python
+Psycopg2
+kafka-python
+sounddevice
+python-vlc
