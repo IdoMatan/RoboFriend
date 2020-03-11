@@ -24,7 +24,7 @@ consumer = KafkaConsumer(bootstrap_servers=['localhost:9092'],
                          value_deserializer=json.loads,
                          key_deserializer=bytes.decode)
 
-consumer.subscribe(['camera', 'microphone', 'video'])
+consumer.subscribe(['camera', 'microphone', 'video', 'logging'])
 
 for message in consumer:
         if message.topic == 'microphone':
@@ -36,8 +36,6 @@ for message in consumer:
         elif message.topic == 'video':
             print("Logging to database:", message.value['page'], ', from:', message.key)
             database.log(page_num=int(message.value['page']), story=message.value['story'])
-
-
 
 
 # def process_topic_one(msg):
