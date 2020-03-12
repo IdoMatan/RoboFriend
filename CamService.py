@@ -141,6 +141,7 @@ while True:
             attention_avg = 100 - attention_avg
             kids_avg /= 5
             producer.send('camera', value={'attention': str(attention_avg), 'kids': str(kids_avg)}, key='CamService')
+            producer.send('servos', value={'dx': str(10), 'dy': str(10)}, key='CamService')
             producer_frames = 0
             attention_avg = 0
             kids_avg = 0

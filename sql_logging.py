@@ -61,24 +61,6 @@ class DatabaseLogger:
             self.cursor.execute(insert, (time_stamp, mic, page_num))
             self.connection.commit()
 
-        # if n_kids and not mic:
-        #     insert = ''' INSERT INTO bear_metrics
-        #                             (time_stamp, n_kids)
-        #                       VALUES
-        #                             (%s, %s);'''
-        #
-        #     self.cursor.execute(insert, (time_stamp, n_kids))
-        #     self.connection.commit()
-        #
-        # if n_kids and mic:
-        #     insert = ''' INSERT INTO bear_metrics
-        #                             (time_stamp, mic, n_kids)
-        #                       VALUES
-        #                             (%s, %s, %s);'''
-        #
-        #     self.cursor.execute(insert, (time_stamp, mic, n_kids))
-        #     self.connection.commit()
-
         elif n_kids and attention:
             insert = ''' INSERT INTO bear_metrics 
                                     (ts, n_kids, attention_avg)
@@ -99,6 +81,13 @@ class DatabaseLogger:
 
         else:
             print('enter either a mic record or n_kids')
+
+    def log_experience(self, experience):
+        pass
+
+    def get_state(page):
+        pass
+        # query = '''SELECT ts, page_num'''
 
     def clear_db(self):
         delete = ''' DELETE FROM bear_metrics'''
