@@ -29,6 +29,7 @@ action = utils.PlayMovie()
 
 position = None
 page = None
+previous_page = 0
 
 for message in consumer:
     if message.topic == 'video' and message.key == 'MainService':
@@ -51,5 +52,7 @@ for message in consumer:
             # action.pause()
             producer.send('video', value={'page': str(page), 'story': story, 'status': 'done'}, key='VideoService')
 
-        producer.send('video', value={'page': str(page), 'story': story, 'status': 'playing'}, key='VideoService')
+        if previous_page != page:
+            producer.send('video', value={'page': str(page), 'story': story, 'status': 'playing'}, key='VideoService')
+            previous_page = page
 

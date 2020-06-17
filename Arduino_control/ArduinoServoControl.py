@@ -19,11 +19,11 @@ class ServoControl:
         self.set_servo_angle(self.current_angle)
         print('Servo initialized')
 
-    def set_servo_angle(self, angle1, angle2=0):
-        angle = str(angle1) + ',' + str(angle2) + '\n'
+    def set_servo_angle(self, roll=0, pitch=0):
+        angle = str(roll) + ',' + str(pitch) + '\n'
         self.arduino.write(angle.encode())                    # write position to serial port
-        print('sent angle 1 to servo:', angle1)
-        print('sent angle 2 to servo:', angle2)
+        print('sent angle 1 to servo:', roll)
+        print('sent angle 2 to servo:', pitch)
 
         # if self.read_servo_angle() is None:
         #     return 0

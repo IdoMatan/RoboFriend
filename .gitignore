@@ -8,3 +8,5 @@
 /libs
 .idea/
 /logs
+site-docs
+logs

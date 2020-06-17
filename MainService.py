@@ -49,6 +49,8 @@ process_list.append(cam_process)
 #
 print('----- Starting VideoService -----')
 video_process = subprocess.Popen('python VideoService.py', shell=True)
+time.sleep(1)
+
 process_list.append(video_process)
 
 print('----- Starting LoggingService -----')
@@ -84,7 +86,7 @@ session = 1
 for page, time_stamp in enumerate(pages):
     # run video
     print(f'Playing page', page, '/', len(pages))
-    producer.send('video', value={'page': str(page), 'story': story, 'status': 'play'}, key='MainService')
+    producer.send('video', value={'page': str(page+1), 'story': story, 'status': 'play'}, key='MainService')
 
     for message in consumer:
         if message.topic == 'video' and message.key == 'VideoService' and message.value['status'] == 'EoP':
