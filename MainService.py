@@ -84,7 +84,7 @@ session = 1
 for page, time_stamp in enumerate(pages):
     # run video
     print(f'Playing page', page, '/', len(pages))
-    producer.send('video', value={'page': str(page), 'story': story, 'status': 'play'}, key='MainService')
+    producer.send('video', value={'page': str(page + 1), 'story': story, 'status': 'play'}, key='MainService')
 
     for message in consumer:
         if message.topic == 'video' and message.key == 'VideoService' and message.value['status'] == 'EoP':

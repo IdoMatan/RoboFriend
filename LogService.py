@@ -37,12 +37,3 @@ for message in consumer:
     elif message.topic == 'logging' and message.value['command'] == 'log_experience':
         # state: {average attention over page, average noise, n_kids
         database.log_experience(message.value['experience'])
-
-
-        #
-        # if time.time() - action_time > 20:
-        #     page = page + 1
-        #     producer.send('action', value={'page': str(page), 'status': 'play'}, key='actionService')
-        #     action_time = time.time()
-
-

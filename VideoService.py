@@ -48,7 +48,7 @@ for message in consumer:
     if page is not None:
         current_position = action.get_time()
         if current_position >= stop_position:
-            # action.pause()
+            action.pause()
             producer.send('video', value={'page': str(page), 'story': story, 'status': 'done'}, key='VideoService')
 
         producer.send('video', value={'page': str(page), 'story': story, 'status': 'playing'}, key='VideoService')

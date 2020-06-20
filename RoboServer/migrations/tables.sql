@@ -1,6 +1,6 @@
 
 DROP TABLE IF EXISTS bear_metrics CASCADE;
-DROP TABLE IF EXISTS experiences CASCADE;
+
 
 -- CREATE SCHEMA default_partition;
 
@@ -13,17 +13,6 @@ CREATE TABLE bear_metrics (
     attention_avg real,
     page_num integer,
     story text
-    );
-
-CREATE TABLE experiences (
-    ts timestamp with time zone NOT NULL,
-    mic_avg real,
-    n_kids integer,
-    attention_avg real,
-    page_num integer,
-    story text,
-    action text,
-    reward real
     );
 
 -- CREATE INDEX idx_metrics_ts ON bear_metrics(ts timestamp_ops);

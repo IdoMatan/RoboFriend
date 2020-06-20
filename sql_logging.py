@@ -86,8 +86,8 @@ class DatabaseLogger:
         pass
 
     def get_state(page):
-        pass
         # query = '''SELECT ts, page_num'''
+        pass
 
     def clear_db(self):
         delete = ''' DELETE FROM bear_metrics'''
