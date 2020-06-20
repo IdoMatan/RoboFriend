@@ -31,4 +31,6 @@ void loop()
     Serial.print("Servo in position 2: ");  
     Serial.println(inByte2);
     }
+    delay(50);
+
 }
