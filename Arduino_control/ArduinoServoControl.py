@@ -13,20 +13,24 @@ import time
 
 class ServoControl:
     # def __init__(self, port='/dev/ttyACMO', baudrate=9600, start_angle=0):
-    def __init__(self, port='/dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_955303436343511130D1-if00', baudrate=9600, start_angle=0):
-    # def __init__(self, port='usb-Arduino_Srl_Arduino_Uno_955303436343511130D1-if00', baudrate=9600, start_angle=0):
+    # def __init__(self, port='/dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_955303436343511130D1-if00', baudrate=9600, start_angle=0):
+    # def __init__(self, port='/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_757363032363515030D1-if00', baudrate=9600, start_angle=0):
+    def __init__(self, port='/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_85734323730351803101-if00', baudrate=9600, start_angle=0):
         self.arduino = serial.Serial(port, baudrate)  # create serial object named arduino
-        self.current_angle = start_angle
-        self.set_servo_angle(self.current_angle)
+        # self.current_angle = start_angle
+        self.set_servo_angle()
         time.sleep(3)
 
         print('Servo initialized')
 
-    def set_servo_angle(self, roll=0, pitch=0):
-        angle = str(roll) + ',' + str(pitch) + '\n'
+    def set_servo_angle(self, roll=50, pitch=50, left=25, right=25):
+        # angle = str(roll) + ',' + str(pitch) + '\n'
+        angle = str(roll) + 'r' + str(pitch) + 'p' + str(left) + 'l' + str(right) + '\n'
         self.arduino.write(angle.encode())                    # write position to serial port
         print('sent roll angle to servo:', roll)
         print('sent pitch angle to servo:', pitch)
+        print('sent left angle to servo:', left)
+        print('sent right angle to servo:', right)
 
         # if self.read_servo_angle() is None:
         #     return 0
@@ -60,28 +64,49 @@ class ServoControl:
 
         for angle in range(start, stop, delta):
             angle2 = angle
-            self.set_servo_angle(roll=angle2, pitch=angle)
-            time.sleep(0.5)
+            self.set_servo_angle(roll=90, pitch=angle)
+            time.sleep(0.05)
 
 
 def test_run(delta):
     servo = ServoControl()
-    max_angle = 135
+    max_angle = 100
 
-    for i in range(1, 10):
-        for angle in range(45, max_angle, delta):
-            angle2 = angle
-            servo.set_servo_angle(roll=angle2, pitch=angle)
-            time.sleep(0.5)
-
-    servo.set_servo_angle(roll=90, pitch=90)
-    time.sleep(3)
-
-    # servo.set_servo_angle(roll=1, pitch=1)
-    # time.sleep(5)
+    for i in range(1, 5):
+    #     for angle in range(1, max_angle, delta):
+    #         servo.set_servo_angle(roll=angle, pitch=50, left=angle, right=angle)
+    #         time.sleep(0.2)
     #
-    # servo.set_servo_angle(roll=0, pitch=0)
-    # time.sleep(3)
+    # for i in range(1, 5):
+    #     for angle in range(1, max_angle, delta):
+    #         angle2 = angle
+    #         servo.set_servo_angle(roll=50, pitch=angle, left=angle, right=angle)
+    #         time.sleep(0.2)
+
+    # servo.set_servo_angle()
+
+        servo.set_servo_angle(roll=50, pitch=50)  # , left=25, right=50)
+        time.sleep(3)
+
+        servo.set_servo_angle(roll=10, pitch=10)  # , left=1, right=1)
+        time.sleep(3)
+
+        servo.set_servo_angle(roll=50, pitch=50)
+        time.sleep(3)
+
+        servo.set_servo_angle(roll=90, pitch=90)
+        time.sleep(3)
+
+    servo.set_servo_angle(roll=50, pitch=50)
+    time.sleep(3)
+        # time.sleep(0.5)
+
+        # servo.set_servo_angle(roll=70, pitch=110)
+        # time.sleep(3)
+        # time.sleep(0.5)
+        #
+        # servo.set_servo_angle(roll=10, pitch=10, left=20, right=20)
+        # time.sleep(5)
 
 
-test_run(5)
+test_run(10)
