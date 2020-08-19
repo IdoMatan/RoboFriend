@@ -88,7 +88,10 @@ for page, time_stamp in enumerate(pages):
     print(f'Playing page', page, '/', len(pages))
     producer.send('video', value={'page': str(page+1), 'story': story, 'status': 'play'}, key='MainService')
 
+    producer.send('servos', value={'roll': str(50), 'pitch': str(50), 'left': str(25), 'right': str(25)}, key='MainService')
+
     for message in consumer:
+
         if message.topic == 'video' and message.key == 'VideoService' and message.value['status'] == 'EoP':
             print('Page ended, waiting for action')
             # producer.send('algorithm', value={'command': 'GetAction', 'session': str(session)}, key='MainService')

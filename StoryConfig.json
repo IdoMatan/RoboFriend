@@ -1,0 +1,10 @@
+{
+    "AptForRent":{
+       "pages": [0, 10, 159, 229, 310, 380, 466],
+       "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
+    },
+    "FoxStory":{
+       "pages": [0, 82, 159, 229, 310, 380, 466],
+       "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
+       }
+}
