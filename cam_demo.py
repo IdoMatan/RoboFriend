@@ -1,7 +1,5 @@
-import os
 import sys
 import cv2
-import time
 import torch
 import utils
 import argparse
@@ -13,8 +11,7 @@ from models import gazenet
 from mtcnn import FaceDetector
 import matplotlib.pyplot as plt
 from Arduino_control.ArduinoServoControl import *
-import datetime as dt
-import matplotlib.animation as animation
+
 # import pyqtgraph as pg
 
 # plotWidget = pg.plot(title="Attention estimation")

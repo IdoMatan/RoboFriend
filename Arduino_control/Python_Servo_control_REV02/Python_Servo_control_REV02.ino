@@ -41,27 +41,33 @@ void loop()
   if (Serial.available()) // if data available in serial port
   {
     update_last_pose();
-
+    
     roll_byte = Serial.readStringUntil('r'); // read data until ,
     pitch_byte = Serial.readStringUntil('p'); // read data until ,
     left_byte = Serial.readStringUntil('l'); // read data until ,
     right_byte = Serial.readStringUntil('\n'); // read data until newline
 
+    while (Serial.available()) Serial.read();
+    
     int roll = roll_byte.toInt();   // change datatype from string to integer
     int pitch = pitch_byte.toInt();   // change datatype from string to integer
     int left = left_byte.toInt();   // change datatype from string to integer
     int right = right_byte.toInt();   // change datatype from string to integer
-
+  
     mapping_position(roll, pitch, left, right);
 
     update_pose();
 
 
-    //    Serial.println(String("roll Servo in position: ") + roll_pos);
-    //    Serial.println(String("Pitch Servo in position: ") + pitch_pos);
-    //    Serial.println(String("left Servo in position: ") + left_pos);
-    //    Serial.println(String("right Servo in position: ") + right_pos);
+//        Serial.println(String("roll Servo in position: ") + roll_pos);
+//        Serial.println(String("Pitch Servo in position: ") + pitch_pos);
+//        Serial.println(String("left Servo in position: ") + left_pos);
+//        Serial.println(String("right Servo in position: ") + right_pos);
 
+//        Serial.println(String("roll Servo in position: ") + roll);
+//        Serial.println(String("Pitch Servo in position: ") + pitch);
+//        Serial.println(String("left Servo in position: ") + left);
+//        Serial.println(String("right Servo in position: ") + right);
   }
   delay(50);
 

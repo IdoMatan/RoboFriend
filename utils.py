@@ -117,9 +117,12 @@ def attention(gaze):
 
 
 class PlayMovie:
-    def __init__(self, pages=0, path='Videos/video_part1.mp4'):
-        self.player = vlc.MediaPlayer(path)
+    def __init__(self, pages=0, path=None):
+        self.player = None if path is None else vlc.MediaPlayer(path)
         # self.pages_map = pages
+
+    def choose_story(self, path):
+        self.player = vlc.MediaPlayer(path)
 
     def play(self, position=0.0):
         self.player.set_fullscreen(b_fullscreen=True)
@@ -128,18 +131,17 @@ class PlayMovie:
 
         self.player.set_time(position)
 
-
     def pause(self):
-        self. player.pause()
+        self.player.pause()
 
     def stop(self):
         self. player.stop()
 
-    def action(self, path):
+    def switch_story(self, path):
         self.player.stop()
         self.player = vlc.MediaPlayer(path)
 
-    def play_page(self, segment):
+    def play_page_with_pagemap(self, segment):
         if segment < len(self.pages_map):
 
             from PyQt5 import QtCore
@@ -161,8 +163,19 @@ class PlayMovie:
             self.play(position=self.pages_map[segment])
             print('Playing page:', segment, '/', len(self.pages_map))
 
+    def play_page(self, start_position=0.0, stop_position=1.0):
+        self.player.set_fullscreen(b_fullscreen=True)
+        self.player.set_time(start_position*1000)
+        self.player.play()
+
+        # duration_in_sec = start_position - stop_position
+        # stopwatch(duration_in_sec)
+        # self.pause()
+        return 0
+
     def get_time(self):
         return self.player.get_time()
+
 
 def stopwatch(seconds):
     start = time.time()
@@ -171,5 +184,22 @@ def stopwatch(seconds):
     while elapsed < seconds:
         elapsed = time.time() - start
         time.sleep(0.2)
+
     return 1
 
+#
+# class VideoClock:
+#     def __init__(self):
+#         self.time_now = int(time.time()/1000)
+#         self.alarm = None
+#
+#     def latch(self, duration):
+#         self.alarm = self.time_now + duration
+#
+#     def update(self,):
+#         self.time_now = int(time.time()/1000)
+#         if self.alarm is not None and self.time_now >= self.alarm:
+#             self.alarm = None
+#             return 1
+#         else:
+#             return 0
