@@ -11,3 +11,5 @@ Psycopg2
 kafka-python
 sounddevice
 python-vlc
+kafka-python
+pika
