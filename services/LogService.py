@@ -39,7 +39,6 @@ def callback(ch, method, properties, body):
     if properties.app_id == 'app_service' and message['action'] == 'initial_start':
         logger = setup_local_logger('logger',
                                     f'../session_logs/session_{message["session"]}_log_{time.strftime("%a,_%d_%b_%Y_%H_%M_%S")}.txt')
-
     if logger is not None:
         logger.info(body)
 
@@ -47,11 +46,20 @@ def callback(ch, method, properties, body):
     if properties.app_id not in ['mic_service', 'cam_service']:
         print(f"Log Callback -> from {properties.app_id}, body: {message}")
 
+    if properties.app_id in ['mic_service']:
+        database.log(mic=message['volume'])
+
+    if properties.app_id in ['cam_service']:
+        try:
+            database.log(attention=float(message['attention']), n_kids=float(message['n_kids']))
+        except:
+            return
 
 rabbitMQ = RbmqHandler('logger')
 rabbitMQ.declare_exchanges(['main'])
 
 rabbitMQ.queues.append({'name': 'logger', 'exchange': 'main', 'key': '#', 'callback': callback})
+
 rabbitMQ.setup_queues()
 rabbitMQ.start_consume()
 

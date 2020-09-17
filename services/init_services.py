@@ -42,9 +42,9 @@ def services():
     video_process = subprocess.Popen(['python3', 'services/VideoService.py'], shell=False)
     p_list.append({'name': 'video_process', 'app': video_process})
 
-    # print('----- Starting LoggingService -----')
-    # logging_service = subprocess.Popen('python3 services/LogService.py', shell=True)
-    # p_list.append({'name': 'logging_service', 'app': logging_service})
+    print('----- Starting LoggingService -----')
+    logging_service = subprocess.Popen('python3 services/LogService.py', shell=True)
+    p_list.append({'name': 'logging_service', 'app': logging_service})
 
     print('----- Starting Servos -----')
     servo_service = subprocess.Popen(['python3', 'services/ServoService.py'], shell=False)
