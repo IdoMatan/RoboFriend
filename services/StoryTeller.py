@@ -6,6 +6,7 @@ from datetime import datetime
 
 enable_print = False
 
+
 class StoryTeller:
     def __init__(self):
         self.story_name = None
@@ -113,9 +114,16 @@ def callback_action(ch, method, properties, body):
                   }
         rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
         if enable_print: print(" [x] Sent %r:%r" % ('servo', message))
-        time.sleep(5)
+        time.sleep(10)
         if enable_print: print('Finished action, moving on to next page....')
         story.play_pause('play')
+
+        packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                  'command': 'explorer',
+                  'manual': story.manual
+                  }
+        rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
+
 
     elif message['action'] == 'Ask question':
         if enable_print: print('Ask a question - not implemented yet, continuing to next page')
@@ -129,7 +137,8 @@ def callback_cam(ch, method, properties, body):
     if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process
         return
     message = json.loads(body)
-    if story.cam_mode == 'track_faces':
+    # if story.cam_mode == 'track_faces':
+    if story.cam_mode == 'no':  # Todo delete this line and uncommentout the above............!!!
         packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                   'command': story.cam_mode,
                   'roll': message['roll'],
