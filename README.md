@@ -20,10 +20,12 @@ Project is not yet complete and is a work-in-progress so stay tuned for future u
 ## Supervision
 The project is done under the supervision of Prof. Tzipi-Horiwitz Kraus and Prof. Erez Karpas from the Technion and is a Masters final project in the Technion Autonomous Systems Program.
 
-
+## run
+First find the arduino serial id
+```python
 ls -l /dev/serial/by-id
-^ arduino id...
-=======
-
-Run BearApp.py
-=======
+```
+run BearApp
+```python
+python BearApp.py
+```
