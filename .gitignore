@@ -1,5 +1,6 @@
 /training.log
 **/__pycache__
+*__pycache__
 *.ipynb
 /Videos
 /venv
@@ -10,3 +11,6 @@
 /logs
 site-docs
 logs
+*.pth
+*.pyc
+.idea
