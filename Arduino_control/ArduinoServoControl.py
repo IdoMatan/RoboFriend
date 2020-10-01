@@ -15,7 +15,8 @@ class ServoControl:
     # def __init__(self, port='/dev/ttyACMO', baudrate=9600, start_angle=0):
     # def __init__(self, port='/dev/serial/by-id/usb-Arduino_Srl_Arduino_Uno_955303436343511130D1-if00', baudrate=9600, start_angle=0):
     # def __init__(self, port='/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_757363032363515030D1-if00', baudrate=9600, start_angle=0):
-    def __init__(self, port='/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_85734323730351803101-if00', baudrate=9600, start_angle=0):
+    # def __init__(self, port='/dev/serial/by-id/usb-Arduino__www.arduino.cc__0043_85734323730351803101-if00', baudrate=9600, start_angle=0):
+    def __init__(self, port='/dev/cu.usbmodem14101', baudrate=9600, start_angle=0):
         self.arduino = serial.Serial(port, baudrate)  # create serial object named arduino
         # self.current_angle = start_angle
         self.set_servo_angle()

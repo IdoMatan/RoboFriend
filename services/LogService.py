@@ -5,6 +5,27 @@ import json
 from rabbitmq.rabbitMQ_utils import *
 import logging
 
+'''
+Robo-Friend project - Logging Service
+-----------------------------------------
+Listening to all traffic on the rabbitmq channels and logs both locally and to sql database (with sql_logging.py)
+
+Local logging - all traffic (in json format)
+
+Database logging of the following:
+ -- n_kids [int]          - number of kids currently in frame
+ -- avg_attention [float] - metric of the average gaze of children
+ -- volume [int]          - noise level metric taken from microphone
+ -- excitement [float]    - metric of average movement of children in frame
+ -- page [int]            - current page being played or finished
+ -- action [int]          - number of previous action taken
+
+*** September 2020 ***
+*** Matan Weksler & Ido Glanz ***
+
+'''
+
+
 database = DatabaseLogger(user="postgres", password=None, host="13.58.106.247", port="5432", database="robo_friend")
 
 database.connect()
@@ -25,10 +46,11 @@ def setup_local_logger(name, log_file, level=logging.INFO):
     return logger
 
 
-# declare logger
+# make sure directory for logging is available
 if not os.path.exists('../session_logs/'):
     os.makedirs('../session_logs/')
-logger = None
+
+logger = None   # logger will be initialized only when 'start' messages is sent from main service
 
 
 def callback(ch, method, properties, body):

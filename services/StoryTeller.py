@@ -30,8 +30,10 @@ class StoryTeller:
         if enable_print: print(f'Playing page', self.current_page, '/', len(self.pages))
         video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                          'action': play,
+                         'session': self.session,
                          'story': self.story_name,
                          'page': self.current_page,
+                         'n_actions': len(self.actions),
                          'from_to': [self.pages[self.current_page], self.pages[self.current_page+1]]
                          }
 
@@ -77,23 +79,29 @@ def callback_eop(ch, method, properties, body):
     if message['state'] == 'EoP':
         if message['page_ended'] >= len(story.pages):
             if enable_print: print('Story Ended')
+            packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                      'command': 'end_of_story',
+                      'page': message['page_ended'],
+                      'manual': story.manual
+                      }
+            rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
             pass
 
         else:
             story.current_page += 1
             packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                       'command': 'get action',
+                       'command': 'get_action',
                        'page': message['page_ended'],
                        'manual': story.manual
                        }
             rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
-            if enable_print: print(" [x] Sent %r:%r" % ('video', message))
+            if enable_print: print(" [x] Sent %r:%r" % ('video', packet))
 
     if enable_print: print(" --> EoP Callback -> [x] %r" % message)
 
 
 def callback_action(ch, method, properties, body):
-    ''' Called when video sends End of Page message
+    '''
     Supported actions: ["Play next page", "Wave hands", "Move head", "Ask question"]
     '''
     if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process

@@ -99,16 +99,15 @@ class RbmqHandler:
         :param add_id: boolean flag if want to add app_id to message
         :return: 0 if failed to send, 1 if all ok
         '''
-        if exchange not in self.exchanges:
-            print('ERROR - Sending to a non-declared exchange')
-            return 0
-        else:
-            new_properties = pika.BasicProperties(app_id=self.id if add_id else None)
-            self.channel.basic_publish(exchange=exchange,
-                                       properties=new_properties,
-                                       routing_key=routing_key,
-                                       body=json.dumps(body) if type(body) is dict else body)
-            return 1
+
+        assert(exchange not in self.exchanges, 'Publish failed - Sending to a non-declared exchange')
+
+        new_properties = pika.BasicProperties(app_id=self.id if add_id else None)
+        self.channel.basic_publish(exchange=exchange,
+                                   properties=new_properties,
+                                   routing_key=routing_key,
+                                   body=json.dumps(body) if type(body) is dict else body)
+        return 1
 
     def close(self):
         ''' Close connection gracefully '''
