@@ -51,6 +51,9 @@ def test_servo_service():
                      body=servo_message)
 
 
+# ------ Test AlgoService  --------------------------------------------------------------------------------------------
+
+
 def test_algo_service(enable_print=True):
     # ------------ send start message --------------------------------------------------------------------------------:
     video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
@@ -109,8 +112,8 @@ def test_algo_service(enable_print=True):
               'manual': False
               }
     rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
-# -----------------------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------------------
 
 
 def send_state(kids_avg, attention_avg, frames_faces_locations):
@@ -125,4 +128,46 @@ def send_state(kids_avg, attention_avg, frames_faces_locations):
 
     print(" [x] Sent %r:%r" % ('camera', message_camera))
 
+
+# ------ Test SpeakeroService  ----------------------------------------------------------------------------------------
+
+def test_speaker_service():
+    page = 0
+    story = 'FoxStory'
+    enable_print = True
+    video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                     'action': 'initial_start',
+                     'session': 1,
+                     'story': story,
+                     'page': page,
+                     'n_actions': 4,
+                     'from_to': [0,20]
+                     }
+
+    rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
+    if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
+
+    time.sleep(1)
+
+    video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                     'action': 'play',
+                     'session': 0,
+                     'story': story,
+                     'page': 6,
+                     'n_actions': 4,
+                     'from_to': [0,20]
+                     }
+
+    rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
+    if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
+
+    time.sleep(1)
+
+    message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'action': 'Ask question', 'story': None}
+    rabbitMQ.publish(exchange='main', routing_key='action.execute', body=message)
+
+    time.sleep(3)
+
+
 test_algo_service()
+# test_speaker_service()

@@ -170,7 +170,7 @@ def send_massage_roll(roll, pitch):
                      'roll': roll, 'pitch': pitch}
 
     rabbitMQ.publish(exchange='main',
-                     routing_key='cam.pose',
+                     routing_key='servos.pose',
                      # routing key could also be: camera.servo if sending direct angles
                      body=message_servo)
 

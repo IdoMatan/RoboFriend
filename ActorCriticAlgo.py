@@ -8,7 +8,7 @@ import logging
 from ResNet import *
 
 
-# TODO make hyperparameters as a json_config file
+# TODO make hyperparameters as a json_config file? not sure needed
 hidden_size = 256
 learning_rate = 3e-5
 
@@ -54,6 +54,7 @@ class Trainer:
         self.actor_critic = None
         self.optimizer = None
         self.episode = 0
+        self.ltl_module = None
 
     def load_a2c(self, load=False):
         num_inputs = self.state_len
@@ -85,6 +86,8 @@ class Trainer:
         log_probs = torch.stack(episode.log_probs)
 
         advantage = Qvals - values
+        ltl_loss_vec = torch.tensor(episode.ltl_losses)
+        # TODO - look at dimensions and add it to actor loss (didn't do it yet just to align dimensions before)
         actor_loss = (-log_probs * advantage).mean()
         critic_loss = 0.5 * advantage.pow(2).mean()
         ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy
@@ -100,6 +103,43 @@ class Trainer:
                     'model_state_dict': self.actor_critic.state_dict(),
                     'optimizer_state_dict': self.optimizer.state_dict(),
                     'episode': self.episode}, filename)
+
+
+class LTL_loss:
+    ''' An loss module based on linear temporal logic - ADD DESCRIPTION HERE '''
+    def __init__(self):
+        self.losses = []
+        self.weights = []
+        self.implemeted_losses = [ltl_diversity, ltl_do_not_repeat]
+
+    def add_constraint(self, loss):
+        '''
+        append a loss function to be calculated as part of the LTL loss
+        :param loss: an ltl loss function
+        '''
+        assert (loss not in self.implemeted_losses, 'Loss not implemented')
+        self.losses.append(loss)
+
+    def loss(self, state, action_vec):
+        '''
+        :param state: torch vector with state vector (see reward function for details)
+        :param action_vec: log probs of actions (output of network)
+        :return: accumulated loss from losses in self.losses
+        '''
+        acc_loss = 0
+        for loss in self.losses:
+            acc_loss += loss(state, action_vec)
+
+
+def ltl_diversity(state_input, action_output):
+    # TODO - add description
+    action_weights = torch.tensor((0.4, 0.2, 0.2, 0.2))
+    return torch.sum(state_input[11:]*action_output*action_weights)
+
+
+def ltl_do_not_repeat(state_input, action_output):
+    # TODO - add description
+    return torch.sum(state_input[7:12]*action_output)
 
 
 class Actions:
@@ -122,14 +162,16 @@ class Environment:
         self.session_uid = None
         self.state_buffer = StateBuffer()
         self.mic_buffer = MicBuffer()
+        self.prev_action = 0
+        self.accumulated_actions = None
 
     def update(self, story_name, story_config, user='admin', session=np.random.randint(0, 1000)):
-
         self.reward = 0
         self.action_space = Actions(story_config['actions'])
         self.story = story_name
         self.user = user
         self.session_uid = session
+        self.accumulated_actions = torch.zeros(self.action_space.n)
 
     def reset(self):
         self.mic_buffer.reset()
@@ -137,16 +179,31 @@ class Environment:
         return True
 
     def step(self):
-        self.state = self.state_buffer.accumulated_state()
+        # self.state = self.state_buffer.accumulated_state(self.prev_action)
+        self.state = self.get_state_vec()
+
         reward = self.calc_reward()
         is_done = 0  # unknown at this stage
 
         return self.state, reward, is_done
 
     def calc_reward(self):
-        reward = 100
+        # state vector structure:
+        # 0=page, 1= n_kids, 2=attention, 3=excitation, 4=volume, 5=sound_diff, 6=prev_action,
+        # 7-10=prev_action as one-hot, 11-14= accumulated prev actions as one-hot
+
+        reward = (self.state[2] - self.state[3] - self.state[4] + self.state[5])
 
         return reward
+
+    def get_state_vec(self):
+        state_vec = self.state_buffer.accumulated_state(self.prev_action)
+        one_hot_action = torch.zeros(self.action_space.n)
+        one_hot_action[int(state_vec[6])] = 1
+        self.accumulated_actions += one_hot_action
+        state_vec = torch.cat((state_vec.float(), one_hot_action, self.accumulated_actions))
+
+        return state_vec
 
 
 class Episode:
@@ -160,6 +217,7 @@ class Episode:
         self.log_probs = []
         self.story_name = None
         self.entropy = 0
+        self.ltl_losses = []
 
     def add_experience(self, experience, log=True):
         self.experiences.append(experience)
@@ -221,8 +279,10 @@ class StateBuffer:
         if key in self.dict_keys.keys():
             return self.states[:, self.dict_keys.get(key)]
 
-    def accumulated_state(self):
-        return np.mean(self.states, axis=0)   # TODO - change to some other augmentation of state matrix?
+    def accumulated_state(self, prev_action):
+        temp_state = np.mean(self.states, axis=0)
+        temp_state[self.dict_keys['prev_action']] = prev_action
+        return torch.from_numpy(temp_state)
 
     def reset(self):
         self.states = np.empty((0, len(self.dict_keys.keys())), float)
@@ -250,28 +310,28 @@ class MicBuffer:
             print('error - non-existing key')
 
 
-class PageExperience:
-    def __init__(self, page, episode):
-        self.page = page
-        self.episode = episode
-        self.states = []
+# class PageExperience:
+#     def __init__(self, page, episode):
+#         self.page = page
+#         self.episode = episode
+#         self.states = []
+#
+#     def __getitem__(self, item):
+#         return self.states[item]
+#
+#     def append_state(self, new_state):
+#         self.states.append(new_state)
+#
+#     def page_summary(self):
+#         return self.states[-1]
 
-    def __getitem__(self, item):
-        return self.states[item]
-
-    def append_state(self, new_state):
-        self.states.append(new_state)
-
-    def page_summary(self):
-        return self.states[-1]
-
-
-def calc_reward(state):
-
-    reward = 100
-    is_done = 0
-
-    return reward, is_done
+#
+# def calc_reward(state):
+#
+#     reward = 100
+#     is_done = 0
+#
+#     return reward, is_done
 
 
 def setup_logger(name, dir_name, log_file, level=logging.INFO):

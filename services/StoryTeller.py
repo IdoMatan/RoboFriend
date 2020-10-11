@@ -6,6 +6,8 @@ from datetime import datetime
 
 enable_print = False
 
+ACTION_WAIT = {"Play next page": 0, "Wave hands": 4, "Move head": 4, "Ask question": 10}
+
 
 class StoryTeller:
     def __init__(self):
@@ -111,51 +113,68 @@ def callback_action(ch, method, properties, body):
 
     if message['action'] == 'Play next page':
         if enable_print: print('Continuing to next page')
+        time.sleep(ACTION_WAIT.get(message['action']))
         story.play_pause('play')
+
+        # send servos to track_faces for page duration
+        packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                  'command': 'track_faces',
+                  'manual': story.manual
+                  }
+        rabbitMQ.publish(exchange='main', routing_key='servos.execute', body=packet)
+        if enable_print: print(" [x] Sent %r:%r" % ('Servos explore', message))
 
     elif message['action'] == 'Wave hands' or message['action'] == 'Move head':
         if enable_print: print(message['action'])
         story.cam_mode = 'preset_action'
         packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                  'enable': True,
                   'command': message['action'],
                   'manual': story.manual
                   }
-        rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
-        if enable_print: print(" [x] Sent %r:%r" % ('servo', message))
-        time.sleep(10)
-        if enable_print: print('Finished action, moving on to next page....')
-        story.play_pause('play')
+        rabbitMQ.publish(exchange='main', routing_key='servos.execute', body=packet)
+        if enable_print: print(" [x] Sent %r:%r" % ('Send servos presets', message))
+        time.sleep(ACTION_WAIT.get(message['action']))
 
-        packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                  'command': 'explorer',
-                  'manual': story.manual
-                  }
-        rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
+        # ------  Finished action, asking for the next one (until a next page action is choosen...)
+        ask_for_action()
+
+    elif message['action'] == 'Ask question':   # command is sent from algo/app straight to SpeakerService
+        if enable_print: print('Asking a question')
+        time.sleep(ACTION_WAIT.get(message['action']))
+
+        # ------  Finished action, asking for the next one (until a next page action is choosen...)
+        ask_for_action()
+
+# def callback_cam(ch, method, properties, body):
+#     '''
+#     Transfer pose angles to serovs (depending on mode)
+#     '''
+#     if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process
+#         return
+#     message = json.loads(body)
+#     # if story.cam_mode == 'track_faces':
+#     if story.cam_mode == 'no':  # Todo delete this line and uncommentout the above............!!!
+#         packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+#                   'command': story.cam_mode,
+#                   'roll': message['roll'],
+#                   'pitch': message['pitch']}
+#
+#         rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
+#         if enable_print: print(" [x] Sent %r:%r" % ('servo', message))
+#
+#     if enable_print: print(" --> Camera pose Callback -> [x] %r" % message)
 
 
-    elif message['action'] == 'Ask question':
-        if enable_print: print('Ask a question - not implemented yet, continuing to next page')
-        story.play_pause('play')
+def ask_for_action():
+    packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+              'command': 'get_action',
+              'page': story.current_page - 1,  # current page is updated before asking for action (thus finished is -1)
+              'manual': story.manual
+              }
+    rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
+    if enable_print: print(" [x] Sent %r:%r" % ('Get action:', packet))
 
-
-def callback_cam(ch, method, properties, body):
-    '''
-    Transfer pose angles to serovs (depending on mode)
-    '''
-    if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process
-        return
-    message = json.loads(body)
-    # if story.cam_mode == 'track_faces':
-    if story.cam_mode == 'no':  # Todo delete this line and uncommentout the above............!!!
-        packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                  'command': story.cam_mode,
-                  'roll': message['roll'],
-                  'pitch': message['pitch']}
-
-        rabbitMQ.publish(exchange='main', routing_key='servos', body=packet)
-        if enable_print: print(" [x] Sent %r:%r" % ('servo', message))
-
-    if enable_print: print(" --> Camera pose Callback -> [x] %r" % message)
 
 story = StoryTeller()   # create blank instance of storyteller
 
@@ -166,7 +185,7 @@ rabbitMQ.declare_exchanges(['main'])
 rabbitMQ.queues.append({'name': 'app', 'exchange': 'main', 'key': 'app', 'callback': callback_app})
 rabbitMQ.queues.append({'name': 'video', 'exchange': 'main', 'key': 'video.state', 'callback': callback_eop})
 rabbitMQ.queues.append({'name': 'actions', 'exchange': 'main', 'key': 'action.execute', 'callback': callback_action})
-rabbitMQ.queues.append({'name': 'cam', 'exchange': 'main', 'key': 'cam.pose', 'callback': callback_cam})
+# rabbitMQ.queues.append({'name': 'cam', 'exchange': 'main', 'key': 'cam.pose', 'callback': callback_cam})
 
 rabbitMQ.setup_queues()
 rabbitMQ.start_consume()

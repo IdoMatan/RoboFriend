@@ -29,8 +29,8 @@ enable_print = True
 
 current_page = 0
 
-STATE_VECTOR_LEN = 7
 ACTION_SPACE = 4
+STATE_VECTOR_LEN = int(7 + ACTION_SPACE*2)
 
 
 def callback_metric(ch, method, properties, body):
@@ -70,7 +70,11 @@ def callback_action(ch, method, properties, body):
             episode.uuid = message['session']
 
             trainer = Trainer(env.action_space.n, STATE_VECTOR_LEN)
-            a2c, optimizer = trainer.load_a2c(load=False)  # TODO - Add auto loading of model
+            a2c, optimizer = trainer.load_a2c(load=False)  # TODO - Add auto loading of model (DONE?)
+
+            trainer.ltl_module = LTL_loss()
+            trainer.ltl_module.add_constraint(ltl_diversity)
+            trainer.ltl_module.add_constraint(ltl_do_not_repeat)
 
             env.reset()   # reset both state and mic buffers
 
@@ -99,6 +103,8 @@ def callback_action(ch, method, properties, body):
             entropy = -np.sum(np.mean(distribution) * np.log(distribution))
             episode.entropy += entropy
 
+            episode.ltl_losses.append(trainer.ltl_module.loss(current_state, distribution))
+
             episode.add_experience(Experience(episode.uuid, current_state, action, reward, None, value, log_prob))
 
             env.reset()
@@ -117,14 +123,9 @@ def callback_action(ch, method, properties, body):
 # Rewarding mechanism
 # LTL constraints integration
 # state vector normalizing
-# in-page learning***
+# in-page learning (?!)***
 
 '''
-
-# state_buffer = StateBuffer()
-# mic_buffer = MicBuffer()
-#TODO init actor critic modules etc.
-
 
 with open('../StoryConfig.json') as json_file:
     stories = json.load(json_file)
