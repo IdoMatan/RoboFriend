@@ -4,7 +4,7 @@
        "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
     },
     "FoxStory":{
-       "pages": [0, 82, 159, 229, 310, 380, 466],
+       "pages": [0, 30, 45, 65, 85, 105, 125, 137, 160, 177, 200],
        "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
        }
 }

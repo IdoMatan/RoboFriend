@@ -90,7 +90,6 @@ if not testing:
 PARAMS = {'command': None, 'enable': False, 'roll': 50, 'pitch': 50, 'right': 10, 'left': 10, 'counter': 0}
 
 
-
 def rbmq_thread():
     global PARAMS
     rabbitMQ = RbmqHandler('servo_service')
@@ -107,7 +106,7 @@ def rbmq_thread():
                 PARAMS[key] = message.get(key)
             PARAMS['counter'] = PARAMS['counter'] + 1
 
-    rabbitMQ.queues.append({'name': 'actions', 'exchange': 'main', 'key': 'servos', 'callback': callback})
+    rabbitMQ.queues.append({'name': 'actions', 'exchange': 'main', 'key': 'servos.*', 'callback': callback})
     rabbitMQ.setup_queues()
     rabbitMQ.start_consume()
 
@@ -118,7 +117,7 @@ rbmq = threading.Thread(target=rbmq_thread)
 rbmq.start()
 
 head_movement = [(50, 50), (10, 50), (50, 10), (80, 50), (50, 50)]
-wave_hand = [(25, 25), (10, 10), (40,40), (25, 25)]
+wave_hand = [(25, 25), (10, 10), (40, 40), (25, 25)]
 explorer = [(50, 10), (50, 90), (50, 50)]
 
 presets = {'Move head': head_movement, 'Wave hands': wave_hand, 'explorer': explorer}
@@ -154,50 +153,20 @@ def main():
                     servo.set_servo_angle(left=action[0], right=action[1])
                     pass
 
-
-        # if params.get('command') in presets.keys() and params.get('enable'):
-        #     for pose in presets.get(params['command']):
-        #         params = get_params()
-        #         if abs(start_time - time.time()) > 1 and params.get('enable'):
-        #             start_time = time.time()
-        #             if testing:
-        #                 print(f'Setting servos to ({pose[0]},{pose[1]})')
-        #             else:
-        #                 # servo.set_servo_angle(left=pose[0], right=pose[1])
-        #                 pass
-        # if PARAMS['COMMAND'] == 'Move head' and PARAMS['ENABLE']:
-        #     start_time = time.time()
-        #     for pose in head_movement:
-        #         if PARAMS['ENABLE'] and abs(start_time - time.time()) > 1000:
-        #             start_time = time.time()
-        #             servo.set_servo_angle(left=pose[0], right=pose[1])
-        #
-        # elif PARAMS['COMMAND'] == 'Wave hands' and PARAMS['ENABLE']:
-        #     start_time = time.time()
-        #     for pose in wave_hand:
-        #         if PARAMS['ENABLE'] and abs(start_time - time.time()) > 1000:
-        #             start_time = time.time()
-        #             servo.set_servo_angle(left=pose[0], right=pose[1])
-        #
-        # elif PARAMS['COMMAND'] == 'explorer':
-        #     start_time = time.time()
-        #     for pose in explorer:
-        #         if PARAMS['ENABLE'] and abs(start_time - time.time()) > 1000:
-        #             start_time = time.time()
-        #             servo.set_servo_angle(left=pose[0], right=pose[1])
-
         elif params['command'] == 'track_faces':
+            # in track faces mode the servos get values directly from cam service but conditioned on storyteller
+            # or other service setting their params['command'= to 'track_faces'.
             if params['enable']:
                 if testing:
                     print(f"Setting servos to ({params['roll']},{params['pitch']})")
                 else:
                     servo.set_servo_angle(roll=params['roll'],
-                                          pitch=params['pitch'])
-                    pass
+                                          pitch=params['pitch'],
+                                          left=params['left'],
+                                          right=params['right'])
 
         else:
-            if enable_print: print('Command not supported yet')
-            else: pass
+            if enable_print: print('Command not supported yet/no enable sent')
 
         time.sleep(0.1)
 
