@@ -6,7 +6,7 @@ from datetime import datetime
 
 enable_print = False
 
-ACTION_WAIT = {"Play next page": 0, "Wave hands": 4, "Move head": 4, "Ask question": 10}
+ACTION_WAIT = {"Play next page": 0, "Wave hands": 10, "Move head": 10, "Ask question": 10}
 
 
 class StoryTeller:

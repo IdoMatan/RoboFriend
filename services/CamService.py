@@ -199,7 +199,7 @@ def toggle_servos(enable):
 
 
 def calc_excitation(frames_faces_locations):
-    excitation = 0
+    excitation, i, j = 0, 0, 0
     # print('N frames: ', len(frames_faces_locations))
     if len(frames_faces_locations):
         for i in range(1, len(frames_faces_locations)):
@@ -326,7 +326,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--weights', '-w', type=str, default='/home/matanweks/Apps/RoboFriend/models/weights/gazenet.pth')
-    parser.add_argument('--camera', '-cam', type=int, default=0,  # 2,
+    parser.add_argument('--camera', '-cam', type=int, default=2,  # 0,
                         help='Choose which camera is working (in my computer 2 - built-in camera and 0 USB cam')
 
     parser.add_argument('--producer_frames', '-produce', type=int, default=5,

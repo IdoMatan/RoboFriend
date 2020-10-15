@@ -43,9 +43,10 @@ def callback(ch, method, properties, body):
         return
     message = json.loads(body)
     if enable_print: print(message)
-    if properties.app_id in ['app_service', 'test_service'] and message['action'] == 'initial_start':
+    if properties.app_id in ['StoryTeller', 'test_service'] and message['action'] == 'start':
+    # if properties.app_id in ['app_service', 'test_service'] and message['action'] == 'initial_start':
         player.update(storyname=message['story'])
-    if properties.app_id in ['app_service', 'test_service'] and message['action'] == 'play':
+    if properties.app_id in ['StoryTeller', 'app_service', 'test_service'] and message['action'] == 'play':
         player.update(page=message['page'])
 
     if properties.app_id in ['algo_service', 'app_service', 'test_service']:
@@ -55,7 +56,7 @@ def callback(ch, method, properties, body):
 
 
 path = Path(sys.path[0]).parent
-player = mp3_player(file_format=str(path) + '/Questions/{story}/120722_{page}.mp3')
+player = mp3_player(file_format=str(path) + '/Questions/{story}/120722_{page}.MP3')
 
 
 rabbitMQ = RbmqHandler('speaker')

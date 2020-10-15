@@ -69,7 +69,7 @@ def callback_action(ch, method, properties, body):
             episode.story_name = message['story']
             episode.uuid = message['session']
 
-            trainer = Trainer(env.action_space.n, STATE_VECTOR_LEN)
+            trainer = Trainer(env.action_space.n, STATE_VECTOR_LEN, manual=message['manual'])
             a2c, optimizer = trainer.load_a2c(load=False)  # TODO - Add auto loading of model (DONE?)
 
             trainer.ltl_module = LTL_loss()
@@ -98,14 +98,18 @@ def callback_action(ch, method, properties, body):
             value = value.detach().numpy()[0, 0]
             distribution = policy_dist.detach().numpy()
 
+            print('Current state: ', current_state)
+            print('Distribution: ', distribution)
+
             action = np.random.choice(ACTION_SPACE, p=np.squeeze(distribution))  # weighted choosing based on output
             log_prob = torch.log(policy_dist.squeeze(0)[action])
             entropy = -np.sum(np.mean(distribution) * np.log(distribution))
             episode.entropy += entropy
 
-            episode.ltl_losses.append(trainer.ltl_module.loss(current_state, distribution))
+            episode.ltl_losses.append(trainer.ltl_module.loss(current_state, policy_dist))
 
-            episode.add_experience(Experience(episode.uuid, current_state, action, reward, None, value, log_prob))
+            episode.add_experience(Experience(episode.uuid, current_state.tolist(), action, reward.detach().tolist(), None, value, log_prob.tolist()),
+                                   log=not message['manual'])
 
             env.reset()
 
@@ -117,6 +121,10 @@ def callback_action(ch, method, properties, body):
                 rabbitMQ.publish(exchange='main', routing_key='action.execute', body=message)
                 if enable_print: print(f'AlgoService -> Sent back to storyteller action: {action_string}, [{action}]')
 
+    elif method.routing_key == 'action.execute' and trainer is not None:
+        episode.experiences[-1].manual_execution = env.action_space.action2onehot(message['action'])
+        episode.add_manual_execution()
+
 
 # TODO - OPEN ISSUES:
 '''
@@ -127,7 +135,7 @@ def callback_action(ch, method, properties, body):
 
 '''
 
-with open('../StoryConfig.json') as json_file:
+with open('./StoryConfig.json') as json_file:
     stories = json.load(json_file)
 
 # init empty env and episode objects (will be updated after 'start' message)
@@ -147,6 +155,7 @@ rabbitMQ.queues.append({'name': 'state_metrics', 'exchange': 'main', 'key': 'mic
 rabbitMQ.queues.append({'name': 'state_metrics', 'exchange': 'main', 'key': 'camera', 'callback': callback_metric})
 rabbitMQ.queues.append({'name': 'storyteller', 'exchange': 'main', 'key': 'action.get', 'callback': callback_action})
 rabbitMQ.queues.append({'name': 'storyteller', 'exchange': 'main', 'key': 'video.action', 'callback': callback_action})
+rabbitMQ.queues.append({'name': 'storyteller', 'exchange': 'main', 'key': 'action.execute', 'callback': callback_action})
 
 rabbitMQ.setup_queues()
 rabbitMQ.start_consume()

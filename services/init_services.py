@@ -50,4 +50,12 @@ def services():
     servo_service = subprocess.Popen(['python3', 'services/ServoService.py'], shell=False)
     p_list.append({'name': 'servo_service', 'app': servo_service})
 
+    print('----- Starting StoryTeller Service -----')
+    speaker_service = subprocess.Popen(['python3', 'services/SpeakerService.py'], shell=False)
+    p_list.append({'name': 'speaker_service', 'app': speaker_service})
+
+    print('----- Starting StoryTeller Service -----')
+    algo_service = subprocess.Popen(['python3', 'services/AlgoService.py'], shell=False)
+    p_list.append({'name': 'algo_service', 'app': algo_service})
+
     return p_list

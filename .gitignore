@@ -14,3 +14,7 @@ logs
 *.pth
 *.pyc
 .idea
+
+algo_log/
+services/niv.mp4
+test_video.mp4

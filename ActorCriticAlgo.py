@@ -48,13 +48,14 @@ class ActorCritic(nn.Module):
 
 
 class Trainer:
-    def __init__(self, n_actions, state_len, params=None):
+    def __init__(self, n_actions, state_len, params=None, manual=False):
         self.n_actions = n_actions
         self.state_len = state_len
         self.actor_critic = None
         self.optimizer = None
         self.episode = 0
         self.ltl_module = None
+        self.manual = manual
 
     def load_a2c(self, load=False):
         num_inputs = self.state_len
@@ -85,12 +86,17 @@ class Trainer:
         Qvals = torch.FloatTensor(Qvals)
         log_probs = torch.stack(episode.log_probs)
 
+        action_manual = torch.stack(episode.manual_executions)
+
         advantage = Qvals - values
         ltl_loss_vec = torch.tensor(episode.ltl_losses)
         # TODO - look at dimensions and add it to actor loss (didn't do it yet just to align dimensions before)
         actor_loss = (-log_probs * advantage).mean()
         critic_loss = 0.5 * advantage.pow(2).mean()
-        ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy
+        if self.manual:
+            ac_loss = imitation_loss(action_output=log_probs, action_manual=action_manual) + ltl_loss_vec  # Test if needed
+        else:
+            ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy + ltl_loss_vec
 
         self.optimizer.zero_grad()
         ac_loss.backward()
@@ -110,6 +116,7 @@ class LTL_loss:
     def __init__(self):
         self.losses = []
         self.weights = []
+
         self.implemeted_losses = [ltl_diversity, ltl_do_not_repeat]
 
     def add_constraint(self, loss):
@@ -139,7 +146,11 @@ def ltl_diversity(state_input, action_output):
 
 def ltl_do_not_repeat(state_input, action_output):
     # TODO - add description
-    return torch.sum(state_input[7:12]*action_output)
+    return torch.sum(state_input[7:11]*action_output)
+
+
+def imitation_loss(action_output, action_manual):
+    return torch.mean((action_output - action_manual)**2)
 
 
 class Actions:
@@ -150,6 +161,12 @@ class Actions:
     def action(self, x):
         return self.action_string[x]  # if n=10, action # 2 would be 0.2 (throttle value)
 
+    def action2onehot(self, action):
+        onehot = torch.zeros(self.n)
+        for i in range(self.n):
+            if action == self.action_string[i]:
+                onehot[i] = 1
+                return onehot
 
 class Environment:
     def __init__(self):
@@ -218,6 +235,7 @@ class Episode:
         self.story_name = None
         self.entropy = 0
         self.ltl_losses = []
+        self.manual_executions = []
 
     def add_experience(self, experience, log=True):
         self.experiences.append(experience)
@@ -226,6 +244,11 @@ class Episode:
         self.log_probs.append(experience.log_probs)
         if log:
             self.log(experience)
+
+    def add_manual_execution(self, log=True):
+        self.manual_executions.append(self.experiences[-1].manual_execution)
+        if log:
+            self.log(self.experiences[-1])
 
     def log(self, experience):
         self.logger.info(json.dumps(experience.as_dict()))
@@ -254,12 +277,14 @@ class Experience:
         self.next_state = next_state
         self.value = value
         self.log_probs = log_probs
+        self.manual_execution = None
 
     def as_dict(self):
         return {'episode': self.episode,
                 'state': list(self.state),
                 'action': self.action,
-                'reward': float(round(self.reward, 2)),
+                # 'reward': float(torch.round(self.reward * 10**2) / (10**2)),
+                'reward': float(round(self.reward)),
                 'next_state': self.next_state,
                 'value': float(round(self.value, 3))}
 

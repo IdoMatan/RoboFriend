@@ -61,6 +61,8 @@ def start_story(story):
                }
     # rabbitMQ.channel.basic_publish(exchange='main', routing_key='app', body=json.dumps(message))
     rabbitMQ.publish(exchange='main', routing_key='app', body=message)
+    button_story1['state'] = 'disabled'
+    button_story2['state'] = 'disabled'
     if enable_print: print(" [x] Sent %r:%r" % ('app', message))
 
 
@@ -223,6 +225,7 @@ with open('StoryConfig.json') as json_file:
 processes = init.services()
 
 atexit.register(init.terminate_subprocesses, processes)
+
 
 def check_queue():
     method, properties, body = rabbitMQ.pull_from_queue('action')
