@@ -12,6 +12,7 @@ import threading
 
 enable_print = False
 
+
 def callback_action(method, properties, body):
     if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process
         return

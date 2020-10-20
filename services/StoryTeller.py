@@ -3,6 +3,8 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import json
 from rabbitmq.rabbitMQ_utils import *
 from datetime import datetime
+import services.init_services as init
+
 
 enable_print = False
 
@@ -36,7 +38,8 @@ class StoryTeller:
                          'story': self.story_name,
                          'page': self.current_page,
                          'n_actions': len(self.actions),
-                         'from_to': [self.pages[self.current_page], self.pages[self.current_page+1]]
+                         'from_to': [self.pages[self.current_page], self.pages[self.current_page+1]],
+                         'manual': self.manual
                          }
 
         rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
@@ -79,7 +82,7 @@ def callback_eop(ch, method, properties, body):
         return
     message = json.loads(body)
     if message['state'] == 'EoP':
-        if message['page_ended'] >= len(story.pages):
+        if message['page_ended'] >= len(story.pages)-2:
             if enable_print: print('Story Ended')
             packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
                       'command': 'end_of_story',

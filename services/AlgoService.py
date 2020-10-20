@@ -68,7 +68,7 @@ def callback_action(ch, method, properties, body):
             env.update(message['story'], stories[message['story']], session=message['session'])
             episode.story_name = message['story']
             episode.uuid = message['session']
-
+            print('message: ', message)
             trainer = Trainer(env.action_space.n, STATE_VECTOR_LEN, manual=message['manual'])
             a2c, optimizer = trainer.load_a2c(load=False)  # TODO - Add auto loading of model (DONE?)
 
@@ -108,7 +108,7 @@ def callback_action(ch, method, properties, body):
 
             episode.ltl_losses.append(trainer.ltl_module.loss(current_state, policy_dist))
 
-            episode.add_experience(Experience(episode.uuid, current_state.tolist(), action, reward.detach().tolist(), None, value, log_prob.tolist()),
+            episode.add_experience(Experience(episode.uuid, current_state.tolist(), action, reward.detach().tolist(), None, value, log_prob.tolist(), policy_dist=policy_dist),
                                    log=not message['manual'])
 
             env.reset()

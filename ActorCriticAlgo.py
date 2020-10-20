@@ -84,19 +84,21 @@ class Trainer:
         # update actor critic
         values = torch.FloatTensor(episode.values)
         Qvals = torch.FloatTensor(Qvals)
-        log_probs = torch.stack(episode.log_probs)
 
-        action_manual = torch.stack(episode.manual_executions)
+        log_probs = torch.FloatTensor(episode.log_probs)
+
+        action_output = torch.stack(episode.policy_dist)
 
         advantage = Qvals - values
-        ltl_loss_vec = torch.tensor(episode.ltl_losses)
+        ltl_loss_vec = torch.stack(episode.ltl_losses)
         # TODO - look at dimensions and add it to actor loss (didn't do it yet just to align dimensions before)
         actor_loss = (-log_probs * advantage).mean()
         critic_loss = 0.5 * advantage.pow(2).mean()
         if self.manual:
-            ac_loss = imitation_loss(action_output=log_probs, action_manual=action_manual) + ltl_loss_vec  # Test if needed
+            action_manual = torch.stack(episode.manual_executions)
+            ac_loss = imitation_loss(action_output=action_output, action_manual=action_manual) + torch.mean(ltl_loss_vec)  # Test if needed
         else:
-            ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy + ltl_loss_vec
+            ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy + torch.mean(ltl_loss_vec)
 
         self.optimizer.zero_grad()
         ac_loss.backward()
@@ -136,6 +138,7 @@ class LTL_loss:
         acc_loss = 0
         for loss in self.losses:
             acc_loss += loss(state, action_vec)
+        return acc_loss
 
 
 def ltl_diversity(state_input, action_output):
@@ -236,12 +239,15 @@ class Episode:
         self.entropy = 0
         self.ltl_losses = []
         self.manual_executions = []
+        self.policy_dist = []
 
     def add_experience(self, experience, log=True):
         self.experiences.append(experience)
         self.rewards.append(experience.reward)
         self.values.append(experience.value)
         self.log_probs.append(experience.log_probs)
+        self.policy_dist.append(experience.policy_dist)
+
         if log:
             self.log(experience)
 
@@ -269,7 +275,7 @@ class Episode:
 
 
 class Experience:
-    def __init__(self, episode, state, action, reward, next_state, value, log_probs):
+    def __init__(self, episode, state, action, reward, next_state, value, log_probs, policy_dist):
         self.episode = episode
         self.state = state
         self.action = action
@@ -277,6 +283,7 @@ class Experience:
         self.next_state = next_state
         self.value = value
         self.log_probs = log_probs
+        self.policy_dist = policy_dist
         self.manual_execution = None
 
     def as_dict(self):
