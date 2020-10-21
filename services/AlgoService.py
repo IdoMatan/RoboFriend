@@ -30,7 +30,7 @@ enable_print = True
 current_page = 0
 
 ACTION_SPACE = 4
-STATE_VECTOR_LEN = int(7 + ACTION_SPACE*2)
+STATE_VECTOR_LEN = int(7 + ACTION_SPACE*2 + 3)
 
 
 def callback_metric(ch, method, properties, body):
@@ -72,9 +72,10 @@ def callback_action(ch, method, properties, body):
             trainer = Trainer(env.action_space.n, STATE_VECTOR_LEN, manual=message['manual'])
             a2c, optimizer = trainer.load_a2c(load=False)  # TODO - Add auto loading of model (DONE?)
 
-            trainer.ltl_module = LTL_loss()
-            trainer.ltl_module.add_constraint(ltl_diversity)
-            trainer.ltl_module.add_constraint(ltl_do_not_repeat)
+            # diff constraints init
+            trainer.diff_constraints_module = DiffConstraints_loss()
+            trainer.diff_constraints_module.add_constraint(diff_constraints_diversity)
+            trainer.diff_constraints_module.add_constraint(diff_constraints_do_not_repeat)
 
             env.reset()   # reset both state and mic buffers
 
@@ -91,6 +92,10 @@ def callback_action(ch, method, properties, body):
             trainer.train(episode, current_state)
             trainer.save_model()
 
+            # send message to app to close everything and go home
+            message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'command': 'end_of_story', 'story': None}
+            rabbitMQ.publish(exchange='main', routing_key='action.get', body=message)
+
         elif message['command'] == 'get_action':
             is_done = 0
             value, policy_dist = a2c.forward(current_state)   # each a vector of size n_actions (i.e. 10 for now)
@@ -106,11 +111,12 @@ def callback_action(ch, method, properties, body):
             entropy = -np.sum(np.mean(distribution) * np.log(distribution))
             episode.entropy += entropy
 
-            episode.ltl_losses.append(trainer.ltl_module.loss(current_state, policy_dist))
+            episode.diff_constraints.append(trainer.diff_constraints_module.loss(current_state, policy_dist))
 
             episode.add_experience(Experience(episode.uuid, current_state.tolist(), action, reward.detach().tolist(), None, value, log_prob.tolist(), policy_dist=policy_dist),
                                    log=not message['manual'])
 
+            env.prev_action.append(int(action))
             env.reset()
 
             action_string = env.action_space.action(action)
@@ -129,7 +135,7 @@ def callback_action(ch, method, properties, body):
 # TODO - OPEN ISSUES:
 '''
 # Rewarding mechanism
-# LTL constraints integration
+# diff constraints integration
 # state vector normalizing
 # in-page learning (?!)***
 

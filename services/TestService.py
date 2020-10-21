@@ -7,6 +7,9 @@ from datetime import datetime
 import time
 import numpy as np
 
+import atexit
+import subprocess
+
 # ------ Init RabbitMQ --------------------------------------------------------------------------------------------
 
 rabbitMQ = RbmqHandler('test_service')
@@ -18,6 +21,9 @@ rabbitMQ.declare_exchanges(['main'])
 # commands: 'Move head', 'Wave hands','explorer'
 
 def test_servo_service():
+    servo_service = subprocess.Popen(['python3', 'ServoService.py'], shell=False)
+    time.sleep(5)
+
     enable = True
     command = 'Move head'
     roll = 50
@@ -30,7 +36,7 @@ def test_servo_service():
                 'pitch': pitch}
 
     rabbitMQ.publish(exchange='main',
-                     routing_key='servos',
+                     routing_key='servos.execute',
                      body=servo_message)
 
     time.sleep(2)
@@ -47,9 +53,12 @@ def test_servo_service():
                 'pitch': pitch}
 
     rabbitMQ.publish(exchange='main',
-                     routing_key='servos',
+                     routing_key='servos.execute',
                      body=servo_message)
 
+    servo_service.kill()
+    _, _ = servo_service.communicate()
+    time.sleep(1)
 
 # ------ Test AlgoService  --------------------------------------------------------------------------------------------
 
@@ -168,6 +177,8 @@ def test_speaker_service():
 
     time.sleep(3)
 
-
-test_algo_service()
+# test_algo_service()
+test_servo_service()
 # test_speaker_service()
+
+

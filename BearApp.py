@@ -232,10 +232,16 @@ def check_queue():
     method, properties, body = rabbitMQ.pull_from_queue('action')
     if method is not None:
         message = json.loads(body)
-        if message['manual']:
+        if message.get('manual'):
             callback_action(method, properties, body)
         else:
             if enable_print: print('Page ended --> Auto mode (algo chooses action)')
+        if message.get('command') == 'end_of_story':
+            if enable_print: print('Story ended --> Closing everything')
+            print('\n-------------------------- STORY IS OVER! ------------------------------------\n')
+            window.destroy()
+            exit()
+
     window.after(500, check_queue)
 
 

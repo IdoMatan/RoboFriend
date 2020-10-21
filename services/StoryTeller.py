@@ -90,6 +90,7 @@ def callback_eop(ch, method, properties, body):
                       'manual': story.manual
                       }
             rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
+            # init.terminate_subprocesses('BearApp')
             pass
 
         else:

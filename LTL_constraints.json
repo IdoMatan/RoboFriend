@@ -1,0 +1,9 @@
+{
+  "per_action":
+  {"description": "do not ask two questions or wave hands twice in a row, ",
+    "formula": "G(ask_question -> X !ask_question) & G(wave_hands -> X !wave_hands)"},
+
+  "terminal":
+    {"description": "Eventually ask a question, move head and wave hands at least once throughout the story",
+      "formula":"F(ask_question) & F(move_head) & F(wave_hands)"}
+}

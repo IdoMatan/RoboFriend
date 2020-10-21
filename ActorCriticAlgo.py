@@ -54,8 +54,10 @@ class Trainer:
         self.actor_critic = None
         self.optimizer = None
         self.episode = 0
-        self.ltl_module = None
+        self.diff_constraints_module = None
         self.manual = manual
+        self. ltl_reward = None
+        self. ltl_reward_terminal = None
 
     def load_a2c(self, load=False):
         num_inputs = self.state_len
@@ -90,15 +92,15 @@ class Trainer:
         action_output = torch.stack(episode.policy_dist)
 
         advantage = Qvals - values
-        ltl_loss_vec = torch.stack(episode.ltl_losses)
+        diff_constraints_loss_vec = torch.stack(episode.diff_constraints)
         # TODO - look at dimensions and add it to actor loss (didn't do it yet just to align dimensions before)
         actor_loss = (-log_probs * advantage).mean()
         critic_loss = 0.5 * advantage.pow(2).mean()
         if self.manual:
             action_manual = torch.stack(episode.manual_executions)
-            ac_loss = imitation_loss(action_output=action_output, action_manual=action_manual) + torch.mean(ltl_loss_vec)  # Test if needed
+            ac_loss = imitation_loss(action_output=action_output, action_manual=action_manual) + torch.mean(diff_constraints_loss_vec)  # Test if needed
         else:
-            ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy + torch.mean(ltl_loss_vec)
+            ac_loss = actor_loss + critic_loss + 0.001 * episode.entropy + torch.mean(diff_constraints_loss_vec)
 
         self.optimizer.zero_grad()
         ac_loss.backward()
@@ -113,18 +115,18 @@ class Trainer:
                     'episode': self.episode}, filename)
 
 
-class LTL_loss:
+class DiffConstraints_loss:
     ''' An loss module based on linear temporal logic - ADD DESCRIPTION HERE '''
     def __init__(self):
         self.losses = []
         self.weights = []
 
-        self.implemeted_losses = [ltl_diversity, ltl_do_not_repeat]
+        self.implemeted_losses = [diff_constraints_diversity, diff_constraints_do_not_repeat]
 
     def add_constraint(self, loss):
         '''
-        append a loss function to be calculated as part of the LTL loss
-        :param loss: an ltl loss function
+        append a loss function to be calculated as part of the diff_constraints loss
+        :param loss: an diff_constraints loss function
         '''
         assert (loss not in self.implemeted_losses, 'Loss not implemented')
         self.losses.append(loss)
@@ -141,13 +143,13 @@ class LTL_loss:
         return acc_loss
 
 
-def ltl_diversity(state_input, action_output):
+def diff_constraints_diversity(state_input, action_output):
     # TODO - add description
     action_weights = torch.tensor((0.4, 0.2, 0.2, 0.2))
-    return torch.sum(state_input[11:]*action_output*action_weights)
+    return torch.sum(state_input[11:15]*action_output*action_weights)
 
 
-def ltl_do_not_repeat(state_input, action_output):
+def diff_constraints_do_not_repeat(state_input, action_output):
     # TODO - add description
     return torch.sum(state_input[7:11]*action_output)
 
@@ -171,6 +173,7 @@ class Actions:
                 onehot[i] = 1
                 return onehot
 
+
 class Environment:
     def __init__(self):
 
@@ -182,8 +185,13 @@ class Environment:
         self.session_uid = None
         self.state_buffer = StateBuffer()
         self.mic_buffer = MicBuffer()
-        self.prev_action = 0
+        self.prev_action = [4, 4, 0]
         self.accumulated_actions = None
+
+        # LTL init
+        per_page_formula, terminal_formula = RewardLTL.load_constraints_json('LTL_constraints.json')
+        self.ltl_reward = RewardLTL(per_page_formula, dfa=False)
+        self.ltl_reward_terminal = RewardLTL(terminal_formula, dfa=False)
 
     def update(self, story_name, story_config, user='admin', session=np.random.randint(0, 1000)):
         self.reward = 0
@@ -199,7 +207,6 @@ class Environment:
         return True
 
     def step(self):
-        # self.state = self.state_buffer.accumulated_state(self.prev_action)
         self.state = self.get_state_vec()
 
         reward = self.calc_reward()
@@ -210,18 +217,26 @@ class Environment:
     def calc_reward(self):
         # state vector structure:
         # 0=page, 1= n_kids, 2=attention, 3=excitation, 4=volume, 5=sound_diff, 6=prev_action,
-        # 7-10=prev_action as one-hot, 11-14= accumulated prev actions as one-hot
+        # 7-10=prev_action as one-hot, 11-14= accumulated prev actions as one-hot, 15-17= last 3 actions
+        ltl_reward_mag = 10
+        ltl_state = self.ltl_reward.parse_action(self.state[-3:].detach().tolist())
 
-        reward = (self.state[2] - self.state[3] - self.state[4] + self.state[5])
+        ltl_reward = ltl_reward_mag if self.ltl_reward.truth(ltl_state) else 0
+
+        reward = (self.state[2] - self.state[3] - self.state[4] + self.state[5]) + ltl_reward
 
         return reward
 
     def get_state_vec(self):
-        state_vec = self.state_buffer.accumulated_state(self.prev_action)
+        state_vec = self.state_buffer.accumulated_state(self.prev_action[-1])
         one_hot_action = torch.zeros(self.action_space.n)
         one_hot_action[int(state_vec[6])] = 1
         self.accumulated_actions += one_hot_action
-        state_vec = torch.cat((state_vec.float(), one_hot_action, self.accumulated_actions))
+
+        state_vec = torch.cat((state_vec.float(),                       # original state vector
+                               one_hot_action,                          # Last action as one-hot
+                               self.accumulated_actions,                # accumulated one-hot actions
+                               torch.FloatTensor(self.prev_action[-3:])))    # last 3 actions as ints for LTL
 
         return state_vec
 
@@ -237,7 +252,9 @@ class Episode:
         self.log_probs = []
         self.story_name = None
         self.entropy = 0
-        self.ltl_losses = []
+        self.diff_constraints = []
+        self.ltl_reward = {}
+        self.ltl_reward_terminal = {}
         self.manual_executions = []
         self.policy_dist = []
 

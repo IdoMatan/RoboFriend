@@ -29,7 +29,7 @@ message arguments:
 enable_print = False
 
 print('Running Servo Service')
-testing = True
+testing = False
 
 if not testing:
     servo = ServoControl()
