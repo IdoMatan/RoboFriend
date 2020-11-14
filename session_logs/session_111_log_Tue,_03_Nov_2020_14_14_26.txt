@@ -1,0 +1,2 @@
+2020-11-03 14:14:42,933,logger,INFO,b'{"time": "11/03/2020, 14:12:29", "action": "start", "session": 111, "story": "AptForRent", "page": 0, "n_actions": 4, "from_to": [0, 20]}'
+2020-11-03 14:14:48,438,logger,INFO,b'{"time": "11/03/2020, 14:12:31", "action": "play", "session": 111, "story": "AptForRent", "page": 0, "n_actions": 4, "from_to": [0, 20]}'

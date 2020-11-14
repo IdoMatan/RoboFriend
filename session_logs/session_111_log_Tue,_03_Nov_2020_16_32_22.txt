@@ -1,0 +1,3 @@
+2020-11-03 16:32:22,787,logger,INFO,b'{"time": "11/03/2020, 16:32:12", "action": "start", "session": 111, "story": "AptForRent", "page": 0, "n_actions": 4, "from_to": [0, 20], "manual": false}'
+2020-11-03 16:32:23,382,logger,INFO,b'{"time": "11/03/2020, 16:32:14", "action": "play", "session": 111, "story": "AptForRent", "page": 0, "n_actions": 4, "from_to": [0, 20], "manual": false}'
+2020-11-03 16:32:24,150,logger,INFO,b'{"page": 0.0, "n_kids": 1.0, "attention": 73.0, "excitation": 4.0, "volume": 16.209999084472656, "sound_diff": 1.6012083292007446, "prev_action": 0.0, "time": "11/03/2020, 16:32:17"}'
