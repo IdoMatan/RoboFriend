@@ -16,12 +16,17 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 1,
   "links": [],
   "panels": [
     {
       "content": "----\n# **Robo-Friend Project**\n## Live metrics from current session",
       "datasource": null,
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 4,
         "w": 10,
@@ -30,7 +35,11 @@
       },
       "id": 6,
       "mode": "markdown",
-      "options": {},
+      "options": {
+        "content": "----\n# **Robo-Friend Project**\n## Live metrics from current session",
+        "mode": "markdown"
+      },
+      "pluginVersion": "7.1.0",
       "timeFrom": null,
       "timeShift": null,
       "title": "",
@@ -39,6 +48,33 @@
     },
     {
       "datasource": "robo_friend",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "displayName": "Current Attention",
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 5,
         "w": 7,
@@ -47,47 +83,24 @@
       },
       "id": 10,
       "options": {
-        "fieldOptions": {
+        "orientation": "auto",
+        "reduceOptions": {
           "calcs": [
             "last"
           ],
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "max": 100,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 50
-                }
-              ]
-            },
-            "title": "Current Attention",
-            "unit": "percent"
-          },
-          "overrides": [],
+          "fields": "",
           "values": false
         },
-        "orientation": "auto",
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
-      "pluginVersion": "6.6.2",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
-          "rawQuery": false,
+          "rawQuery": true,
           "rawSql": "SELECT\n  ts AS \"time\",\n  attention_avg\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  attention_avg = attention_avg is not null\nORDER BY 1",
           "refId": "A",
           "select": [
@@ -131,6 +144,33 @@
     {
       "datasource": "robo_friend",
       "description": "Number of kids currently captured by camera",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {},
+          "displayName": "Number of Kids:",
+          "mappings": [],
+          "max": 20,
+          "min": 0,
+          "noValue": "No Kids detected",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
       "gridPos": {
         "h": 5,
         "w": 6,
@@ -139,40 +179,20 @@
       },
       "id": 4,
       "options": {
-        "fieldOptions": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
           "calcs": [
             "lastNotNull"
           ],
-          "defaults": {
-            "color": {
-              "mode": "thresholds"
-            },
-            "mappings": [],
-            "max": 20,
-            "min": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {
-                  "color": "green",
-                  "value": null
-                },
-                {
-                  "color": "red",
-                  "value": 10
-                }
-              ]
-            },
-            "title": "Number of Kids"
-          },
-          "overrides": [],
+          "fields": "",
           "values": false
         },
-        "orientation": "auto",
-        "showThresholdLabels": false,
-        "showThresholdMarkers": true
+        "textMode": "auto"
       },
-      "pluginVersion": "6.6.2",
+      "pluginVersion": "7.2.1",
       "targets": [
         {
           "format": "time_series",
@@ -217,7 +237,7 @@
       "timeShift": null,
       "title": "",
       "transparent": true,
-      "type": "gauge"
+      "type": "stat"
     },
     {
       "cacheTimeout": null,
@@ -229,6 +249,12 @@
         "#FA6400"
       ],
       "datasource": "robo_friend",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
       "format": "none",
       "gauge": {
         "maxValue": 100,
@@ -260,7 +286,6 @@
       "maxDataPoints": 100,
       "nullPointMode": "connected",
       "nullText": null,
-      "options": {},
       "postfix": "",
       "postfixFontSize": "50%",
       "prefix": "Current page - ",
@@ -287,13 +312,126 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": false,
-          "rawSql": "SELECT\n  ts AS \"time\",\n  page_num\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts)\nORDER BY 1",
+          "rawSql": "SELECT\n  ts AS \"time\",\n  page\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts)\nORDER BY 1",
           "refId": "A",
           "select": [
             [
               {
                 "params": [
-                  "page_num"
+                  "page"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "bear_metrics",
+          "timeColumn": "ts",
+          "timeColumnType": "timestamptz",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "thresholds": "3, 5",
+      "timeFrom": null,
+      "timeShift": null,
+      "title": "",
+      "transparent": true,
+      "type": "singlestat",
+      "valueFontSize": "80%",
+      "valueMaps": [
+        {
+          "op": "=",
+          "text": "N/A",
+          "value": "null"
+        }
+      ],
+      "valueName": "current"
+    },
+    {
+      "cacheTimeout": null,
+      "colorBackground": true,
+      "colorValue": false,
+      "colors": [
+        "#37872D",
+        "#E0B400",
+        "#FA6400"
+      ],
+      "datasource": "robo_friend",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {}
+        },
+        "overrides": []
+      },
+      "format": "none",
+      "gauge": {
+        "maxValue": 100,
+        "minValue": 0,
+        "show": false,
+        "thresholdLabels": false,
+        "thresholdMarkers": true
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 5,
+        "x": 5,
+        "y": 4
+      },
+      "id": 13,
+      "interval": null,
+      "links": [],
+      "mappingType": 1,
+      "mappingTypes": [
+        {
+          "name": "value to text",
+          "value": 1
+        },
+        {
+          "name": "range to text",
+          "value": 2
+        }
+      ],
+      "maxDataPoints": 100,
+      "nullPointMode": "connected",
+      "nullText": null,
+      "postfix": "",
+      "postfixFontSize": "50%",
+      "prefix": "Previous Action: ",
+      "prefixFontSize": "50%",
+      "rangeMaps": [
+        {
+          "from": "null",
+          "text": "N/A",
+          "to": "null"
+        }
+      ],
+      "sparkline": {
+        "fillColor": "rgba(31, 118, 189, 0.18)",
+        "full": false,
+        "lineColor": "rgb(31, 120, 193)",
+        "show": false,
+        "ymax": null,
+        "ymin": null
+      },
+      "tableColumn": "",
+      "targets": [
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": false,
+          "rawSql": "SELECT\n  ts AS \"time\",\n  prev_action1\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts)\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "prev_action1"
                 ],
                 "type": "column"
               }
@@ -333,6 +471,13 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "robo_friend",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 2,
       "fillGradient": 4,
       "gridPos": {
@@ -356,9 +501,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.2.1",
       "pointradius": 2,
       "points": true,
       "renderer": "flot",
@@ -371,7 +517,7 @@
           "format": "time_series",
           "group": [],
           "metricColumn": "none",
-          "rawQuery": false,
+          "rawQuery": true,
           "rawSql": "SELECT\n  ts AS \"time\",\n  attention_avg\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  attention_avg = attention_avg IS NOT NULL\nORDER BY 1",
           "refId": "A",
           "select": [
@@ -404,6 +550,32 @@
               "type": "expression"
             }
           ]
+        },
+        {
+          "format": "time_series",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  ts AS \"time\",\n  excitement\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  excitement = excitement IS NOT NULL\nORDER BY 1\n",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
         }
       ],
       "thresholds": [
@@ -419,7 +591,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Average attention",
+      "title": "Attention and Excitement",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -463,6 +635,13 @@
       "dashLength": 10,
       "dashes": false,
       "datasource": "robo_friend",
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "links": []
+        },
+        "overrides": []
+      },
       "fill": 2,
       "fillGradient": 0,
       "gridPos": {
@@ -486,9 +665,10 @@
       "linewidth": 1,
       "nullPointMode": "null",
       "options": {
-        "dataLinks": []
+        "alertThreshold": true
       },
       "percentage": false,
+      "pluginVersion": "7.2.1",
       "pointradius": 2,
       "points": false,
       "renderer": "flot",
@@ -502,13 +682,13 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": false,
-          "rawSql": "SELECT\n  ts AS \"time\",\n  mic\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  mic = mic IS NOT NULL\nORDER BY 1",
+          "rawSql": "SELECT\n  ts AS \"time\",\n  mic_volume\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  mic_volume = mic_volume IS NOT NULL\nORDER BY 1",
           "refId": "A",
           "select": [
             [
               {
                 "params": [
-                  "mic"
+                  "mic_volume"
                 ],
                 "type": "column"
               }
@@ -527,9 +707,9 @@
               "datatype": "float4",
               "name": "",
               "params": [
-                "mic",
+                "mic_volume",
                 "=",
-                "mic IS NOT NULL"
+                "mic_volume IS NOT NULL"
               ],
               "type": "expression"
             }
@@ -540,13 +720,13 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": false,
-          "rawSql": "SELECT\n  ts AS \"time\",\n  n_kids\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  n_kids = n_kids IS NOT NULL\nORDER BY 1",
-          "refId": "B",
+          "rawSql": "SELECT\n  ts AS \"time\",\n  mic_diff\nFROM bear_metrics\nWHERE\n  $__timeFilter(ts) AND\n  mic_diff = mic_diff IS NOT NULL\nORDER BY 1",
+          "refId": "C",
           "select": [
             [
               {
                 "params": [
-                  "n_kids"
+                  "mic_diff"
                 ],
                 "type": "column"
               }
@@ -554,7 +734,7 @@
           ],
           "table": "bear_metrics",
           "timeColumn": "ts",
-          "timeColumnType": "timestamp",
+          "timeColumnType": "timestamptz",
           "where": [
             {
               "name": "$__timeFilter",
@@ -562,12 +742,12 @@
               "type": "macro"
             },
             {
-              "datatype": "int4",
+              "datatype": "float4",
               "name": "",
               "params": [
-                "n_kids",
+                "mic_diff",
                 "=",
-                "n_kids IS NOT NULL"
+                "mic_diff IS NOT NULL"
               ],
               "type": "expression"
             }
@@ -616,16 +796,16 @@
       }
     }
   ],
-  "refresh": "1s",
-  "schemaVersion": 22,
+  "refresh": false,
+  "schemaVersion": 26,
   "style": "dark",
   "tags": [],
   "templating": {
     "list": []
   },
   "time": {
-    "from": "now-5m",
-    "to": "now"
+    "from": "2020-11-03T17:30:28.600Z",
+    "to": "2020-11-03T17:32:43.683Z"
   },
   "timepicker": {
     "refresh_intervals": [

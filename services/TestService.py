@@ -73,7 +73,8 @@ def test_algo_service(enable_print=True):
                      'story': 'AptForRent',
                      'page': 0,
                      'n_actions': 4,
-                     'from_to': [0, 20]
+                     'from_to': [0, 20],
+                     'manual': False
                      }
 
     rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
@@ -87,7 +88,8 @@ def test_algo_service(enable_print=True):
                      'story': 'AptForRent',
                      'page': 0,
                      'n_actions': 4,
-                     'from_to': [0, 20]
+                     'from_to': [0, 20],
+                     'manual': False
                      }
 
     rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
@@ -95,7 +97,7 @@ def test_algo_service(enable_print=True):
 
     # ------------ send camera message --------------------------------------------------------------------------------:
     for i in range(4):
-        time.sleep(5)
+        time.sleep(3)
         send_state(np.random.randint(1,4), np.random.randint(0,100),np.random.randint(0,200))
 
     # ------------ send get action message ---------------------------------------------------------------------------:
@@ -109,13 +111,14 @@ def test_algo_service(enable_print=True):
     rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
     if enable_print: print(" [x] Sent %r:%r" % ('video', packet))
 
+    # ------------ send camera message --------------------------------------------------------------------------------:
+
     for i in range(4):
-        time.sleep(5)
+        time.sleep(3)
         send_state(np.random.randint(1,4), np.random.randint(0,100),np.random.randint(0,200))
 
     # ------------ send get action message ---------------------------------------------------------------------------:
     time.sleep(1)
-
 
     packet = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
               'command': 'end_of_story',
@@ -123,8 +126,7 @@ def test_algo_service(enable_print=True):
               'manual': False
               }
     rabbitMQ.publish(exchange='main', routing_key='action.get', body=packet)
-# ---------------------------------------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------------------
+# ====================================================================================================================
 
 
 def send_state(kids_avg, attention_avg, frames_faces_locations):
@@ -192,10 +194,13 @@ def callback_test(ch, method, properties, body):
     # print(properties)
     # print("Hello")
 
-rabbitMQ = RbmqHandler('')
-rabbitMQ.declare_exchanges(['main'])
-rabbitMQ.queues.append({'name': 'BearApp', 'exchange': 'main', 'key': 'BearApp', 'callback': callback_test})
-rabbitMQ.setup_queues()
-rabbitMQ.start_consume()
+# rabbitMQ = RbmqHandler('')
+# rabbitMQ.declare_exchanges(['main'])
+# rabbitMQ.queues.append({'name': 'BearApp', 'exchange': 'main', 'key': 'BearApp', 'callback': callback_test})
+# rabbitMQ.setup_queues()
+# rabbitMQ.start_consume()
+test_algo_service()
+# test_servo_service()
+# test_speaker_service()
 
 
