@@ -6,7 +6,7 @@ import sys, os
 import json
 import logging
 from ResNet import *
-
+from datetime import datetime, timezone
 
 # TODO make hyperparameters as a json_config file? not sure needed
 hidden_size = 256
@@ -189,7 +189,7 @@ class Environment:
         self.accumulated_actions = None
 
         # LTL init
-        per_page_formula, terminal_formula = RewardLTL.load_constraints_json('LTL_constraints.json')
+        per_page_formula, terminal_formula = RewardLTL.load_constraints_json('../LTL_constraints.json')
         self.ltl_reward = RewardLTL(per_page_formula, dfa=False)
         self.ltl_reward_terminal = RewardLTL(terminal_formula, dfa=False)
 
@@ -209,10 +209,11 @@ class Environment:
     def step(self):
         self.state = self.get_state_vec()
 
-        reward = self.calc_reward()
+        # reward = self.calc_reward()
         is_done = 0  # unknown at this stage
 
-        return self.state, reward, is_done
+        # return self.state, reward, is_done
+        return self.state, is_done
 
     def calc_reward(self):
         # state vector structure:
@@ -229,14 +230,15 @@ class Environment:
 
     def get_state_vec(self):
         state_vec = self.state_buffer.accumulated_state(self.prev_action[-1])
+        self.state_buffer.previous_action = self.prev_action[-1]
         one_hot_action = torch.zeros(self.action_space.n)
         one_hot_action[int(state_vec[6])] = 1
         self.accumulated_actions += one_hot_action
 
-        state_vec = torch.cat((state_vec.float(),                       # original state vector
-                               one_hot_action,                          # Last action as one-hot
-                               self.accumulated_actions,                # accumulated one-hot actions
-                               torch.FloatTensor(self.prev_action[-3:])))    # last 3 actions as ints for LTL
+        state_vec = torch.cat((state_vec.float(),                           # original state vector
+                               one_hot_action,                              # Last action as one-hot
+                               self.accumulated_actions,                    # accumulated one-hot actions
+                               torch.FloatTensor(self.prev_action[-3:])))   # last 3 actions as ints for LTL
 
         return state_vec
 
@@ -314,14 +316,15 @@ class Experience:
 
 
 class StateBuffer:
+    ''' Used to temporary buffering of metrics from mic and cam, later accumlated to form a state vec '''
     def __init__(self):
         self.dict_keys = {'page': 0, 'n_kids': 1, 'attention': 2, 'excitation': 3, 'volume': 4, 'sound_diff': 5, 'prev_action': 6}
-
         self.states = np.empty((0, len(self.dict_keys.keys())), float)
+        self.previous_action = 0
 
     def add_state(self, page, n_kids, attention, excitation, volume, sound_diff, prev_action):
         if prev_action == 'auto':
-            prev_action = 0
+            prev_action = self.previous_action
         self.states = np.vstack((self.states, [page, n_kids, attention, excitation, volume, sound_diff, prev_action]))
 
     def get_metric(self, key):
@@ -329,9 +332,26 @@ class StateBuffer:
             return self.states[:, self.dict_keys.get(key)]
 
     def accumulated_state(self, prev_action):
+        ''' Return an accumlated state vec from the metrics gathered since last reset '''
         temp_state = np.mean(self.states, axis=0)
         temp_state[self.dict_keys['prev_action']] = prev_action
         return torch.from_numpy(temp_state)
+
+    def format_as_log_message(self, state_vec):
+        ''' Format as dictionary object to send over RabbitMQ '''
+        utc_dt = datetime.now(timezone.utc)  # UTC time
+        time_stamp = utc_dt.strftime('%Y-%m-%d %H:%M:%S')
+
+        if len(state_vec) <= 8:   # case of pure metrics - before action taken
+            state_as_dict = dict(zip(self.dict_keys.keys(), state_vec.tolist()))
+            state_as_dict.update({'time': time_stamp})
+        else:                     # case of state-action log (after inference)
+            state_as_dict = dict(zip(self.dict_keys.keys(), state_vec[0:len(self.dict_keys.keys())].tolist()))
+            state_as_dict.update({'action_prev1': int(state_vec[15]),
+                                  'action_prev2': int(state_vec[15]),
+                                  'action_prev3': int(state_vec[15]),
+                                  'time': time_stamp})
+        return state_as_dict
 
     def reset(self):
         self.states = np.empty((0, len(self.dict_keys.keys())), float)
