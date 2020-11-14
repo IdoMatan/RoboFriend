@@ -326,7 +326,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--cpu', action='store_true')
     parser.add_argument('--weights', '-w', type=str, default='/home/matanweks/Apps/RoboFriend/models/weights/gazenet.pth')
-    parser.add_argument('--camera', '-cam', type=int, default=0,  # 2,
+    parser.add_argument('--camera', '-cam', type=int, default=2,  # 2,
                         help='Choose which camera is working (in my computer 2 - built-in camera and 0 USB cam')
 
     parser.add_argument('--producer_frames', '-produce', type=int, default=5,
