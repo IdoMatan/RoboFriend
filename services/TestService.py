@@ -1,3 +1,5 @@
+
+
 import os
 import sys
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
@@ -146,39 +148,57 @@ def test_speaker_service():
     page = 0
     story = 'FoxStory'
     enable_print = True
-    video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                     'action': 'initial_start',
-                     'session': 1,
-                     'story': story,
-                     'page': page,
-                     'n_actions': 4,
-                     'from_to': [0,20]
-                     }
+    for i in range(3):
+        video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                         'action': 'initial_start',
+                         'session': 1,
+                         'story': story,
+                         'page': page,
+                         'n_actions': 4,
+                         'from_to': [0,20]
+                         }
 
-    rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
-    if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
+        rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
+        if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
 
-    time.sleep(1)
+        time.sleep(1)
 
-    video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
-                     'action': 'play',
-                     'session': 0,
-                     'story': story,
-                     'page': 6,
-                     'n_actions': 4,
-                     'from_to': [0,20]
-                     }
+        video_message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"),
+                         'action': 'play',
+                         'session': 0,
+                         'story': story,
+                         'page': 6,
+                         'n_actions': 4,
+                         'from_to': [0, 20]
+                         }
 
-    rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
-    if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
+        rabbitMQ.publish(exchange='main', routing_key='video.action', body=video_message)
+        if enable_print: print(" [x] Sent %r:%r" % ('video', video_message))
 
-    time.sleep(1)
+        time.sleep(1)
 
-    message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'action': 'Ask question', 'story': None}
-    rabbitMQ.publish(exchange='main', routing_key='action.execute', body=message)
+        message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'action': 'Ask question', 'story': None}
+        rabbitMQ.publish(exchange='main', routing_key='action.execute', body=message)
 
-    time.sleep(3)
+        time.sleep(5)
 
+# test_algo_service()
+# test_servo_service()
+test_speaker_service()
+
+
+def callback_test(ch, method, properties, body):
+    message = json.loads(body)
+    print(message)
+    print(body)
+    # print(properties)
+    # print("Hello")
+
+# rabbitMQ = RbmqHandler('')
+# rabbitMQ.declare_exchanges(['main'])
+# rabbitMQ.queues.append({'name': 'BearApp', 'exchange': 'main', 'key': 'BearApp', 'callback': callback_test})
+# rabbitMQ.setup_queues()
+# rabbitMQ.start_consume()
 test_algo_service()
 # test_servo_service()
 # test_speaker_service()

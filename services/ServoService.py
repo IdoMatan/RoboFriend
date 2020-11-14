@@ -156,7 +156,7 @@ def main():
         elif params['command'] == 'track_faces':
             # in track faces mode the servos get values directly from cam service but conditioned on storyteller
             # or other service setting their params['command'= to 'track_faces'.
-            if params['enable']:
+             if params['enable']:
                 if testing:
                     print(f"Setting servos to ({params['roll']},{params['pitch']})")
                 else:

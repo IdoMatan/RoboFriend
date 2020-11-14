@@ -23,7 +23,6 @@ class ActorCritic(nn.Module):
         super(ActorCritic, self).__init__()
 
         self.num_actions = num_actions
-        self.num_actions = num_actions
         self.critic_linear1 = nn.Linear(num_inputs, hidden_size)
         self.critic_linear2 = nn.Linear(hidden_size, 1)
 
@@ -189,6 +188,7 @@ class Environment:
         self.accumulated_actions = None
 
         # LTL init
+
         per_page_formula, terminal_formula = RewardLTL.load_constraints_json('../LTL_constraints.json')
         self.ltl_reward = RewardLTL(per_page_formula, dfa=False)
         self.ltl_reward_terminal = RewardLTL(terminal_formula, dfa=False)

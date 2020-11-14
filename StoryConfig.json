@@ -3,11 +3,11 @@
        "pages": [0, 5, 82, 159, 229, 310, 380, 466],
        "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
     },
-    "FoxStory_BU":{
+    "FoxStory":{
        "pages": [0, 30, 45, 65, 85, 105, 125, 137, 160, 177, 200],
        "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
        },
-    "FoxStory":{
+    "FoxStory_BU":{
        "pages": [0, 5, 10, 15],
        "actions": ["Play next page", "Wave hands", "Move head", "Ask question"]
        }
