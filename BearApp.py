@@ -11,15 +11,22 @@ import threading
 # ---------------------------------------------- RabbitMQ setup -------------------------------------------------------
 
 enable_print = False
+pre_defined_index = 0
 
 
-def callback_action(method, properties, body):
+def callback_action(method, properties, body, mode):
+    global pre_defined_index
     if properties.app_id == rabbitMQ.id:   # skip messages sent from the same process
         return
     message = json.loads(body)
+    story = stories[story_playing.get()]
     if enable_print: print(" --> EoP Callback -> [x] %r" % message)
-    action_popup(f'Finished page {message["page"]}', stories[story_playing.get()]['actions'])
-
+    if mode == 'manual':
+        action_popup(f'Finished page {message["page"]}', stories[story_playing.get()]['actions'])
+    elif mode == 'pre-defined':
+        # send_pre_defined_action(stories[story_playing.get()]['pre_defined_actions'][message["page"]])
+        # send_pre_defined_action(stories[story_playing.get()]['actions'][stories[story_playing.get()]['pre_defined_actions'][pre_defined_index]])
+        send_pre_defined_action(story['actions'][story['pre_defined_actions'][pre_defined_index]])
 
 rabbitMQ = RbmqHandler('app_service')
 rabbitMQ.declare_exchanges(['main'])
@@ -58,7 +65,8 @@ def start_story(story):
                'story': stories[story],
                'username': username.get(),
                'session': session.get(),
-               'manual': manual.get()
+               # 'manual': manual.get()
+               'manual': False if mode.get() == 'auto' else True
                }
     # rabbitMQ.channel.basic_publish(exchange='main', routing_key='app', body=json.dumps(message))
     rabbitMQ.publish(exchange='main', routing_key='app', body=message)
@@ -116,6 +124,11 @@ def action_popup(msg, actions):
     return action_choosen
 
 
+def send_pre_defined_action(act):
+    if enable_print: print('Action choosen:', act)
+    message = {'time': datetime.now().strftime("%m/%d/%Y, %H:%M:%S"), 'action': act, 'story': None}
+    rabbitMQ.publish(exchange='main', routing_key='action.execute', body=message)
+
 # ---------------------------------------------------------------------------------------------------------------------
 
 window = tk.Tk()  # you may also see it named as "root" in other sources
@@ -147,9 +160,11 @@ buttons_frame.grid(row=4, column=0)
 # -------------------------------------------------- Variables  -------------------------------------------------------
 labelText = tk.StringVar()
 play_pause = tk.StringVar()
-username = tk.StringVar()
-session = tk.StringVar()
-manual = tk.BooleanVar()
+username = tk.StringVar(value='admin')
+session = tk.StringVar(value=str(int(time.time())))
+manual = tk.BooleanVar(value=True)
+mode = tk.StringVar(value='manual')
+
 story_playing = tk.StringVar()
 
 # test = tk.Variable()
@@ -189,12 +204,14 @@ user_label = tk.Label(input_frame, text="Username: ")
 session_entry = tk.Entry(input_frame, textvariable=session, width=10)
 username_entry = tk.Entry(input_frame, textvariable=username, width=10)
 
-checkbox = tk.Checkbutton(input_frame, text="Manual mode", variable=manual)
+# checkbox = tk.Checkbutton(input_frame, text="Manual mode", variable=manual)
+mode_list = tk.OptionMenu(input_frame, mode, "manual", "auto", "pre-defined")
 
 # the order which we pack the items is important
 user_label.pack(side='left')
 username_entry.pack(side='left', padx=5)
-checkbox.pack(side='right', padx=5)
+# checkbox.pack(side='right', padx=5)
+mode_list.pack(side='right', padx=5)
 session_entry.pack(side='right', padx=5)
 session_label.pack(side='right')
 
@@ -223,9 +240,9 @@ with open('StoryConfig.json') as json_file:
 
 # ------------------------------------------------- Init environment --------------------------------------------------
 
-processes = init.services()
-
-atexit.register(init.terminate_subprocesses, processes)
+# processes = init.services()
+#
+# atexit.register(init.terminate_subprocesses, processes)
 
 
 def check_queue():
@@ -233,7 +250,8 @@ def check_queue():
     if method is not None:
         message = json.loads(body)
         if message.get('manual'):
-            callback_action(method, properties, body)
+            callback_action(method, properties, body, mode=mode.get())
+
         else:
             if enable_print: print('Page ended --> Auto mode (algo chooses action)')
         if message.get('command') == 'end_of_story':
