@@ -54,6 +54,7 @@ services:
   rabbit1:
     image: "rabbitmq:3-management"
     hostname: "rabbit1"
+    restart: always
     environment:
       RABBITMQ_ERLANG_COOKIE: "SWQOKODSQALRPCLNMEQG"
       RABBITMQ_DEFAULT_USER: "rabbitmq"

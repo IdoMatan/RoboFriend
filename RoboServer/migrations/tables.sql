@@ -20,3 +20,4 @@ CREATE TABLE bear_metrics (
     prev_action2 integer,
     prev_action3 integer
     );
+

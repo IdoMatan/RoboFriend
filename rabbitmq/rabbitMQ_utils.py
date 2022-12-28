@@ -8,7 +8,7 @@ class RbmqHandler:
     A simple RabbitMQ handler class, the broker should either run locally or on remote server and the host
     address set appropriately
     '''
-    def __init__(self, service_id, user='rabbitmq', password='rabbitmq', host='13.58.106.247'):
+    def __init__(self, service_id, user='rabbitmq', password='rabbitmq', host='localhost'):
         self.user = user
         self.id = service_id
         self.password = password

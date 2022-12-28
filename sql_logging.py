@@ -44,53 +44,7 @@ class DatabaseLogger:
         else:
             print('No Postgres connection available to close...')
 
-    # def log(self, mic=None, n_kids=None, attention=None, page_num=None, story=None):
-    #
-    #     # time_stamp = time.strftime('%Y-%m-%d %H:%M:%S')
-    #     utc_dt = datetime.now(timezone.utc)  # UTC time
-    #     time_stamp = utc_dt.strftime('%Y-%m-%d %H:%M:%S')
-    #
-    #     # print(utc_dt, time_String_temp)
-    #
-    #     if mic:
-    #         insert = ''' INSERT INTO bear_metrics
-    #                                 (ts, mic, page_num)
-    #                           VALUES
-    #                                 (%s, %s, %s);'''
-    #
-    #         self.cursor.execute(insert, (time_stamp, mic, page_num))
-    #         self.connection.commit()
-    #
-    #     elif n_kids and attention:
-    #         insert = ''' INSERT INTO bear_metrics
-    #                                 (ts, n_kids, attention_avg)
-    #                           VALUES
-    #                                 (%s, %s, %s);'''
-    #
-    #         self.cursor.execute(insert, (time_stamp, n_kids, attention))
-    #         self.connection.commit()
-    #
-    #     elif page_num and story:
-    #         insert = ''' INSERT INTO bear_metrics
-    #                                 (ts, page_num, story)
-    #                           VALUES
-    #                                 (%s, %s, %s);'''
-    #
-    #         self.cursor.execute(insert, (time_stamp, page_num, story))
-    #         self.connection.commit()
-    #
-    #     else:
-    #         print('enter either a mic record or n_kids')
 
-    # def log_metric(self, message, story, session):
-    #     insert = ''' INSERT INTO bear_metrics
-    #                                         (ts, story, session_id, mic_volume, mic_diff,n_kids,attention_avg,excitement,page_num)
-    #                                   VALUES
-    #                                         (%s, %s, %s, %s, %s, %s, %s, %s, %s);'''
-    #
-    #     self.cursor.execute(insert, (message.get('time'), story, session, message.get('volume'), message.get('sound_diff'),
-    #                                  message['n_kids'], message['attention'], message['excitation'], message['page']))
-    #     self.connection.commit()
 
     def log(self, message, page, session, story):
         insert = ''' INSERT INTO bear_metrics
@@ -98,23 +52,6 @@ class DatabaseLogger:
                                       VALUES
                                             (%s, %s,%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
 
-       #  insert = "INSERT INTO bear_metrics (ts, story,page_num, session_id, mic_volume, mic_diff,n_kids,attention_avg,excitement, prev_action1, prev_action2, prev_action3) VALUES " \
-       #           "({ts}, {story}, {page_num},{session_id}, {mic_volume}, {mic_diff},{n_kids},{attention_avg}, {excitement}, {prev_action1}, {prev_action2},{prev_action3})"
-       #
-       #  self.cursor.execute(insert.format(ts=message.get('time'),
-       #                                    story=story, page=page,
-       #                                    session_id=session,
-       #                                    mic_volume=message.get('volume'),
-       #                                    mic_diff=message.get('sound_diff'),
-       #                                    n_kids=message.get('n_kids'),
-       #                                    attention_avg=message.get('attention'),
-       #                                    excitement=message.get('excitation'),
-       #                                    page_num=message.get('page'),
-       #                                    prev_action1=message.get('action_prev1'),
-       #                                    prev_action2=message.get('action_prev2'),
-       #                                    prev_action3=message.get('action_prev3')))
-       #
-       # # self.cursor.execute (insert)
         self.cursor.execute(insert, (message.get('time'), story, page, session, message.get('volume'), message.get('sound_diff'),
                                      message.get('n_kids'), message.get('attention'), message.get('excitation'),
                                      message.get('action_prev1') if not None else 'null',
